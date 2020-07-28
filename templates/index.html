@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+        <title>Demirjian's评分标注工具</title>
+        <link type="favicon" rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+        <!-- Bootstrap -->
+        <link href="/static/build/js/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/static/build/css/custom.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <!--图片（动态加载）-->
+                <div class="col-md-7 img-main" id="img-item"></div>
+                <div class="col-md-5" id="file-open">
+                    <br/>
+                    <form method="post" enctype="multipart/form-data">
+                        <div>
+                            <label for="image_uploads">文件输入(BMP, PNG, JPG)</label>
+                            <input type="file" id="image_uploads" name="image_uploads" accept=".bmp, .jpg, .jpeg, .png" multiple/>
+                        </div>
+                        <div class="preview">
+                            <p>&nbsp;No files currently selected</p>
+                        </div>
+	                </form>
+                    <form role="form">
+                        <div class="form-group">
+                            <span><b>牙位</b></span>
+                            <br/><br/><span>&nbsp;</span>
+                            <label class="radio-inline">
+                                <input type="radio" checked="checked" value="18" name="tooth">18
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="17" name="tooth">17
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="16" name="tooth">16
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="15" name="tooth">15
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="14" name="tooth">14
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="13" name="tooth">13
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="12" name="tooth">12
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="11" name="tooth">11
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="21" name="tooth">21
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="22" name="tooth">22
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="23" name="tooth">23
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="24" name="tooth">24
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="25" name="tooth">25
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="26" name="tooth">26
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="27" name="tooth">27
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="28" name="tooth">28
+                            </label>
+                            <br/><span>&nbsp;</span>
+                            <label class="radio-inline">
+                                <input type="radio" value="48" name="tooth">48
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="47" name="tooth">47
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="46" name="tooth">46
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="45" name="tooth">45
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="44" name="tooth">44
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="43" name="tooth">43
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="42" name="tooth">42
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="41" name="tooth">41
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="31" name="tooth">31
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="32" name="tooth">32
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="33" name="tooth">33
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="34" name="tooth">34
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="35" name="tooth">35
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="36" name="tooth">36
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="37" name="tooth">37
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" value="38" name="tooth">38
+                            </label>
+                        </div>
+                    </form>
+                    <div>
+                        <br/>
+                    </div>
+                    <div id="annotation-type">
+                        <b>标注类型</b>
+                    </div>
+                    <div>
+                        <br/>
+                    </div>
+                    <div>
+                        <span><b>样本总数：</b><strong id="total"></strong></span>
+                        <input type="text" id="jump_page" value="" style="width:100px" placeholder="跳转到指定页"/>
+                        <span><b>当前文件：</b><strong id="cur_id"></strong></span>
+                        <span><b>坐标区域：</b><strong id="cur_loc"></strong></span>
+                    </div>
+                    <div >
+                        <br/>
+                        <span><b>当前样本标注状态：</b></span>
+                        <textarea class="form-control" id="annotation_cur_status" style="width:850px" rows="8"></textarea>
+                    </div>
+                    <div>
+                        <br/>
+                        <span><b>所有样本标注状态：</b></span>
+                        <textarea class="form-control" id="annotation_total_status" style="width:850px" rows="8"></textarea>
+                    </div>
+                    <br/>
+                    <button class="btn btn-primary" id="btn_save" type="button">保存</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div class="col-md-1">
+                    <button class="btn btn-default btn-lg" id="side_left" type="button" value="left">
+                        <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-default btn-lg" id="side_right" type="button" value="right">
+                        <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-1">
+                    <br/><br/><br/><br/><br/>
+                </div>
+            </div>
+        </div>
+
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="/static/build/js/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+        <script src="/static/build/js/layer-v3.1.1/layer/layer.js"></script>
+        <script src="/static/build/js/custom.js"></script>
+        <script src="/static/build/js/draw_roi.js"></script>
+        <script type="text/javascript">
+        var sampleCount = "{{ sample_count }}";
+        </script>
+    </body>
+</html>
