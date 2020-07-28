@@ -74,14 +74,111 @@ $(function(e){
       dragging = false;
       if(document.getElementById("active_box") !== null) {
         var ab = document.getElementById("active_box");
+        var curToothPosition = $('input[name="tooth"]:checked').val(); //牙位
         ab.removeAttribute("id");
           // 如果长宽均小于 3px，移除 box
         //   if(ab.offsetWidth < 3 || ab.offsetHeight < 3) {
         //       document.body.removeChild(ab);
         //   }else{
         updateLoc(ab);
-        $(ab).html('<div class="box_label">'+"<font size=2>"+$('#ann option:selected').text()+"</font>"+"</div>");
+        $(ab).html('<div class="box_label">'+"<font size=2>"+$('#ann input:checked').val()+"</font>"+"</div>"); //标签类别
         //   }
+        if(curToothPosition==18){
+          $('input[name="tooth"][value=17]').attr("checked", true);
+        }
+        else if(curToothPosition==17){
+          $('input[name="tooth"][value=16]').attr("checked", true);
+        }
+        else if(curToothPosition==16){
+          $('input[name="tooth"][value=15]').attr("checked", true);
+        }
+        else if(curToothPosition==15){
+          $('input[name="tooth"][value=14]').attr("checked", true);
+        }
+        else if(curToothPosition==14){
+          $('input[name="tooth"][value=13]').attr("checked", true);
+        }
+        else if(curToothPosition==13){
+          $('input[name="tooth"][value=12]').attr("checked", true);
+        }
+        else if(curToothPosition==12){
+          $('input[name="tooth"][value=11]').attr("checked", true);
+        }
+        else if(curToothPosition==11){
+          $('input[name="tooth"][value=21]').attr("checked", true);
+        }
+        if(curToothPosition==21){
+          $('input[name="tooth"][value=22]').attr("checked", true);
+        }
+        else if(curToothPosition==22){
+          $('input[name="tooth"][value=23]').attr("checked", true);
+        }
+        else if(curToothPosition==23){
+          $('input[name="tooth"][value=24]').attr("checked", true);
+        }
+        else if(curToothPosition==24){
+          $('input[name="tooth"][value=25]').attr("checked", true);
+        }
+        else if(curToothPosition==25){
+          $('input[name="tooth"][value=26]').attr("checked", true);
+        }
+        else if(curToothPosition==26){
+          $('input[name="tooth"][value=27]').attr("checked", true);
+        }
+        else if(curToothPosition==27){
+          $('input[name="tooth"][value=28]').attr("checked", true);
+        }
+        else if(curToothPosition==28){
+          $('input[name="tooth"][value=48]').attr("checked", true);
+        }
+        if(curToothPosition==48){
+          $('input[name="tooth"][value=47]').attr("checked", true);
+        }
+        else if(curToothPosition==47){
+          $('input[name="tooth"][value=46]').attr("checked", true);
+        }
+        else if(curToothPosition==46){
+          $('input[name="tooth"][value=45]').attr("checked", true);
+        }
+        else if(curToothPosition==45){
+          $('input[name="tooth"][value=44]').attr("checked", true);
+        }
+        else if(curToothPosition==44){
+          $('input[name="tooth"][value=43]').attr("checked", true);
+        }
+        else if(curToothPosition==43){
+          $('input[name="tooth"][value=42]').attr("checked", true);
+        }
+        else if(curToothPosition==42){
+          $('input[name="tooth"][value=41]').attr("checked", true);
+        }
+        else if(curToothPosition==41){
+          $('input[name="tooth"][value=31]').attr("checked", true);
+        }
+        if(curToothPosition==31){
+          $('input[name="tooth"][value=32]').attr("checked", true);
+        }
+        else if(curToothPosition==32){
+          $('input[name="tooth"][value=33]').attr("checked", true);
+        }
+        else if(curToothPosition==33){
+          $('input[name="tooth"][value=34]').attr("checked", true);
+        }
+        else if(curToothPosition==34){
+          $('input[name="tooth"][value=35]').attr("checked", true);
+        }
+        else if(curToothPosition==35){
+          $('input[name="tooth"][value=36]').attr("checked", true);
+        }
+        else if(curToothPosition==36){
+          $('input[name="tooth"][value=37]').attr("checked", true);
+        }
+        else if(curToothPosition==37){
+          $('input[name="tooth"][value=38]').attr("checked", true);
+        }
+        else if(curToothPosition==38){
+          alert("所有牙齿都已经标记了！")
+        }
       }else if(document.getElementById("moving_box") !== null) {
         var ab = document.getElementById("moving_box");
         updateLoc(ab);
@@ -97,7 +194,7 @@ $(function(e){
     var regionLoc = x_left+','+y_left+','+x_right+','+y_right; //2个坐标
     $('#cur_loc').html(regionLoc);
     var picId = $('#cur_id').html(); //照片id
-    var regionClass = $('#ann option:selected').val(); //标签类别
+    var regionClass = $('#ann input:checked').val(); //标签类别
     var toothPosition = $('input[name="tooth"]:checked').val(); //牙位
     tagStr = picId+','+regionLoc+","+regionClass+","+toothPosition;
     box_id = $(obj).attr('box_id');

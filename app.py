@@ -36,7 +36,7 @@ def route_template(template):
 def get_labels():
     label_json = tool.get_labels()
     result = dict()
-    result['message'] = 'success'
+    result['message'] = '保存成功！'
     result['data'] = label_json
     return jsonify(result)
 
@@ -86,7 +86,7 @@ def save_annotation():
     except Exception as e:
         print(e)
     result = dict()
-    result['message'] = 'success'
+    result['message'] = '保存成功！'
     return jsonify(result)
 
 

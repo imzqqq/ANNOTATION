@@ -136,8 +136,8 @@ function get_labels(){
 		beforeSend:function(){
 		},
 		success : function(result){
-		    if(result.message=='success'){
-		        var html = '<b>标注类型</b>&nbsp;&nbsp;&nbsp;<select id="ann" name="annotation">';
+		    if(result.message=='保存成功！'){
+		        var html = '<b>标注类型</b>&nbsp;&nbsp;&nbsp;<table class="radio-table" border id="ann" name="annotation" style="width:850px" ><tbody>';
 		        index = 0;
 		        for (var i in result.data){
 		            var id = 'region_'+result.data[i].name;
@@ -145,15 +145,15 @@ function get_labels(){
                     var text = result.data[i].desc;
                     // 修改标注类型,默认选中第一个
 		            if(index==0){
-		                html += '<option selected name="annotation-item" id="'+id+'" value="'+value+'">';
+		                html += '<tr><td><input type="radio" checked name="annotation-item" id="'+id+'" value="'+value+'" onclick="clickRadio()"></td><td>';
                     }
                     else{
-		                html += '<option name="annotation-item" id="'+id+'" value="'+value+'">';
+		                html += '<tr><td><input type="radio" name="annotation-item" id="'+id+'" value="'+value+'" onclick="clickRadio()"></td><td>';
 		            }
-		            html += ' '+text+'</option>';
+		            html += ' '+text+'</td></tr>';
 		            index++;
                 }
-                html += '</select>';
+                html += '</tbody></table>';
                 $('#annotation-type').html(html);
 		    }
 		},
@@ -233,3 +233,7 @@ function format2Time(uData){
 	return year + '-' + month + '-' + day+' '+hour+':'+minute+':'+second;
 }
 
+function clickRadio () {
+    console.log(document.querySelector('.radio-table tbody input[type=radio]:checked'))
+    // document.getElementById('checked').innerHTML = document.querySelector('.radio-table tbody input[type=radio]:checked').value
+}

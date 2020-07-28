@@ -145,18 +145,6 @@
                         <span><b>当前文件：</b><strong id="cur_id"></strong></span>
                         <span><b>坐标区域：</b><strong id="cur_loc"></strong></span>
                     </div>
-                    <div >
-                        <br/>
-                        <span><b>当前样本标注状态：</b></span>
-                        <textarea class="form-control" id="annotation_cur_status" style="width:850px" rows="8"></textarea>
-                    </div>
-                    <div>
-                        <br/>
-                        <span><b>所有样本标注状态：</b></span>
-                        <textarea class="form-control" id="annotation_total_status" style="width:850px" rows="8"></textarea>
-                    </div>
-                    <br/>
-                    <button class="btn btn-primary" id="btn_save" type="button">保存</button>
                 </div>
             </div>
             <div class="row">
@@ -173,8 +161,20 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-1">
+                <div class="col-md-7">
+                    <div>
+                        <span><b>所有样本标注状态：</b></span>
+                        <textarea class="form-control" id="annotation_total_status"  rows="8"></textarea>
+                    </div>
                     <br/><br/><br/><br/><br/>
+                </div>
+                <div class="col-md-5">
+                    <div >
+                        <span><b>当前样本标注状态：</b></span>
+                        <textarea class="form-control" id="annotation_cur_status" style="width:850px" rows="8"></textarea>
+                    </div>
+                    <br/>
+                    <button class="btn btn-primary" id="btn_save" type="button">保存</button>
                 </div>
             </div>
         </div>
