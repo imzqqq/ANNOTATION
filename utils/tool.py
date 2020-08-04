@@ -8,7 +8,7 @@ import random
 import config
 from logger_manager import controller_logger as logger
 from utils.db_helper import DBHelper
-from  utils import xml2dict
+from utils import xml2dict
 
 
 def validate_request(ip, url):
@@ -91,6 +91,7 @@ def start_daemon_service(func, pid_file):
 def shutdown_service(pid_path):
     command = 'kill -9 `cat ' + pid_path + '`;rm -f ' + pid_path
     os.system(command)
+
 
 #将label_config里面的标签名字和描述按行读出并写入到字典中
 def get_labels():

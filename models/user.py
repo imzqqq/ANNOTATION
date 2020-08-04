@@ -2,6 +2,7 @@ import hashlib
 from flask_login import AnonymousUserMixin, UserMixin
 
 
+# UserMixin:This provides default implementations for the methods that Flask-Login expects user objects to have.
 class User(UserMixin):
     username = None
     password = None

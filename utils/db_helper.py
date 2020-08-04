@@ -9,7 +9,8 @@ class DBHelper:
     cursor = None
 
     def __init__(self):
-        #初始化数据库连接,PORT默认3306                      database – Database to use, None to not use a particular one.
+        #初始化数据库连接,PORT默认3306
+        # 打开数据库连接            （       ip/          数据库用户名/         登录密码/         数据库名    ）
         self.conn = pymysql.connect(config.MYSQL_HOST, config.MYSQL_USER, config.MYSQL_PWD, config.MYSQL_DB,\
                                     use_unicode=True, charset="utf8")
         self.cursor = self.conn.cursor()
