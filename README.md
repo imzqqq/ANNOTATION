@@ -48,6 +48,5 @@ $ python3 app.py --convert2voc
 * Windows下python无fork功能，不支持daemon（后台进程）方式启动
 * 标注数据在`annotation/annotation.txt`文件中，每行一条标注数据，格式为`filename,x1,y1,x2,y2,classname`，x1,y1,x2,y2分别表示左上角和右下角坐标
 
-
 ## 已知Bug
 * 绘制区域再选择对应类别，然后切换样本时会导致类别单选框状态跟着切换（临时解决方法：通过点击页面空白区域来取消单选框焦点以避免bug）

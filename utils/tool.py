@@ -153,6 +153,7 @@ def convert_to_voc2007(file_path='annotation/annotation.txt'):
         filename = annotation[0].split('.')[0]
         names.append(filename)
         dic = {'annotation':annotation[1]}
+        #将xml转成dict
         convertedXml = xml2dict.unparse(dic)
         xml_nohead = convertedXml.split('\n')[1]
         file = codecs.open(path + 'Annotations/'+filename + '.xml', mode='w', encoding='utf-8')

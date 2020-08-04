@@ -48,7 +48,6 @@ def get_sample():
     if 'index' in request.args:
         print("---request---", request)
         # img_name需要request里面的index字段的值
-        # img_name = request.args['index'] + '.' + sys_config.SAMPLE_FILE_TYPE
         img_name = request.args['index']
         print("---img_name---", img_name)
         img_path = os.path.join(sys_config.SAMPLE_FILE_PATH, img_name)

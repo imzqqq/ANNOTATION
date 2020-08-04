@@ -9,7 +9,8 @@ class DBHelper:
     cursor = None
 
     def __init__(self):
-        self.conn = pymysql.connect(config.MYSQL_HOST, config.MYSQL_USER, config.MYSQL_PASS, config.MYSQL_DB,\
+        #初始化数据库连接,PORT默认3306                      database – Database to use, None to not use a particular one.
+        self.conn = pymysql.connect(config.MYSQL_HOST, config.MYSQL_USER, config.MYSQL_PWD, config.MYSQL_DB,\
                                     use_unicode=True, charset="utf8")
         self.cursor = self.conn.cursor()
         self.conn.autocommit(1)
