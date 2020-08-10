@@ -26,7 +26,7 @@ SAMPLE_FILE_TYPE = 'bmp'
 SAMPLE_FILE_PATH = './static/images'  
 
 #MYSQL配置
-MYSQL_HOST = '127.0.0.1'
+MYSQL_HOST = '0.0.0.0'
 MYSQL_PORT = '3306'
 MYSQL_USER = 'admin'
 MSYQL_PWD = 'Pwd@123456'
