@@ -16,7 +16,7 @@ if not os.path.exists(LOG_DIR):
 
 # 节点配置
 PID_FILE = 'od-annotation.pid'
-SERVER_PORT = 5000
+SERVER_PORT = 10042
 
 # 标注配置
 SAMPLE_TYPE_SET = ['jpg', 'jpeg', 'png', 'bmp']
