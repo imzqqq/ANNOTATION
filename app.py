@@ -102,9 +102,9 @@ def get_sample():
         print("\n---request---", request)
         # img_name需要request里面的index字段的值
         img_name = request.args['index']
-        print("---img_name---", img_name)
+        # print("---img_name---", img_name)
         img_path = os.path.join(sys_config.SAMPLE_FILE_PATH, img_name)
-        print("---img_path---", img_path)
+        # print("---img_path---", img_path)
         # Sends the contents of a file to the client.
         return send_file(img_path, mimetype='application/octet-stream',
                          as_attachment=True, attachment_filename=img_name)

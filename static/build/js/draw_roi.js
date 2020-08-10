@@ -1,5 +1,4 @@
 var all_radio = document.getElementsByName("tooth");
-// console.log("all radio: " + all_radio);
 var radio_length = all_radio.length;
 
 $(function(e) {
@@ -30,14 +29,16 @@ $(function(e) {
             // 在页面创建 box
             var active_box = document.createElement("div");
             active_box.id = "active_box";
-            active_box.setAttribute("box_id", 'box_' + boxId); // 设置
+            active_box.setAttribute("box_id", 'box_' + boxId); // boxId默认为1
             boxId++;
             active_box.className = "box";
             active_box.style.position = 'absolute';
             active_box.style.top = startY + 'px';
             active_box.style.left = startX + 'px';
             document.body.appendChild(active_box);
-            active_box = null;
+            //*****************/
+            // active_box = null;
+            //*****************/
         }
     };
 
@@ -46,8 +47,14 @@ $(function(e) {
         // 如果鼠标在 box 上按下右键
         if (e.target.className.match(/box/)) {
             document.body.removeChild(e.target);
-            delete boxListOfSample[$(e.target).attr('box_id')];
+            console.log(e.target);
+            var lab = 'label_' + $(e.target).attr('box_id');
+            console.log("lab: " + lab);
+            delete boxListOfSample[$(e.target).attr('box_id')]; //默认为空
             updateCurTagStatus();
+            cur_lab = document.getElementById(lab);
+            console.log("cur_lab: " + cur_lab);
+            $(cur_lab).html('');
             $('#cur_loc').html('');
             //不继续传递右键事件，即不弹出菜单
             return false;
@@ -78,28 +85,41 @@ $(function(e) {
         if (document.getElementById("active_box") !== null) {
             var ab = document.getElementById("active_box");
             //牙位
-            var curToothPosition = $('input[name="tooth"]:checked').val();
-            console.log("curToothPosition: " + curToothPosition);
+            // var curToothPosition = $('input[name="tooth"]:checked').val();
+            // console.log("curToothPosition: " + curToothPosition);
             /**************************************************************/
             //更新radio
-            for (var i = 0; i < radio_length; i++) {
-                console.log("all_radio[", i, "]", all_radio[i]);
-                if (all_radio[i].checked) {
-                    all_radio[i].setAttribute('checked', false);
-                    if ((i + 1) == radio_length) {
-                        all_radio[0].setAttribute('checked', true);
-                        alert("标注完成！");
-                    } else {
-                        all_radio[i + 1].setAttribute('checked', true);
-                    }
-                    break;
-                }
-            }
+            // for (var i = 0; i < radio_length; i++) {
+            //     // console.log("all_radio[", i, "]", all_radio[i]);
+            //     console.log("i1= " + i);
+            //     if (all_radio[i].checked) {
+            //         all_radio[i].setAttribute('checked', false);
+            //         if ((i + 1) == radio_length) {
+            //             console.log("i2= " + i);
+            //             all_radio[0].setAttribute('checked', true);
+            //             alert("标注完成！");
+            //             break;
+            //         } else {
+            //             all_radio[i + 1].setAttribute('checked', true);
+            //             break;
+            //         }
+            //     }
+            // }
             /**************************************************************/
             ab.removeAttribute("id");
             updateLoc(ab);
             //标签类别
-            $(ab).html('<div class="box_label">' + "<font size=2>" + $('#ann input:checked').val() + "</font>" + "</div>");
+            // 在页面创建 box
+            var active_label = document.createElement("div");
+            curboxid = boxId - 1;
+            active_label.id = 'label_box_' + curboxid;
+            console.log("labelid: " + active_label.id);
+            active_label.className = "label";
+            active_label.style.position = 'absolute';
+            active_label.style.top = startY - 15 + 'px';
+            active_label.style.left = startX + 'px';
+            document.body.appendChild(active_label);
+            $(active_label).html('<div class="box_label">' + "<font size=2>" + $('#ann input:checked').val() + "</font>" + "</div>");
         } else if (document.getElementById("moving_box") !== null) {
             var ab = document.getElementById("moving_box");
             updateLoc(ab);

@@ -10,12 +10,14 @@
 .box {
     opacity: 1;
     border: 1px solid #e90808;
+    z-index: 2;
 }
 
 .box_label {
     opacity: 1;
     color: #fff;
     font-size: 16px;
+    z-index: 11;
 }
 
 div {
