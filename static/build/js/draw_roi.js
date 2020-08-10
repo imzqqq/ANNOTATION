@@ -47,13 +47,13 @@ $(function(e) {
         // 如果鼠标在 box 上按下右键
         if (e.target.className.match(/box/)) {
             document.body.removeChild(e.target);
-            console.log(e.target);
-            var lab = 'label_' + $(e.target).attr('box_id');
-            console.log("lab: " + lab);
+            // console.log(e.target);
+            // console.log("lab: " + lab);
             delete boxListOfSample[$(e.target).attr('box_id')]; //默认为空
             updateCurTagStatus();
+            var lab = 'label_' + $(e.target).attr('box_id');
             cur_lab = document.getElementById(lab);
-            console.log("cur_lab: " + cur_lab);
+            // console.log("cur_lab: " + cur_lab);
             $(cur_lab).html('');
             $('#cur_loc').html('');
             //不继续传递右键事件，即不弹出菜单

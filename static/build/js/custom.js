@@ -134,6 +134,21 @@ function initPage() {
         updateTotalTagStatus();
         boxId = 1;
         boxListOfSample = {};
+
+
+
+
+        var all_labels = document.getElementsByClassName("label");
+        console.log("all_labels: ", all_labels);
+        var newArr = [];
+        for (var i = 0; i < all_labels.length; i++) {
+            newArr.push(all_labels[i]);
+        }
+        for (var i = 0; i < newArr.length; i++) {
+            document.body.removeChild(newArr[i]);
+        }
+
+
     });
     get_labels(); //将标签类型加载到下拉菜单中
     $('#annotation-type').click(function() {

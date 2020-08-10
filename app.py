@@ -37,15 +37,15 @@ def index():
         #获取上传文件
         files = []
         files = request.files.getlist('image_uploads')
-        print("\n------files------:", files)
+        # print("\n------files------:", files)
         #检查文件对象是否存在且合法
         for file in files:
-            print("\n------file------:", file)
+            # print("\n------file------:", file)
             if file and allowed_file(file.filename): 
                 #把汉字文件名抹掉了，所以下面多一道检查
                 filename = secure_filename(file.filename) 
                 if filename != file.filename:
-                    print("filename != file.filename---")
+                    # print("filename != file.filename---")
                     flash("only support ASCII name")
                     return render_template('index.html')            
                 #save
@@ -55,7 +55,7 @@ def index():
                     file.save(os.path.join(UPLOAD_FOLDER, filename)) 
                     copy_photo_to_static(filename) 
                 except FileNotFoundError:
-                    print("---try mkdir---")
+                    # print("---try mkdir---")
                     os.mkdir(UPLOAD_FOLDER)
                     file.save(os.path.join(UPLOAD_FOLDER, filename))
                 flag_upload_successed = True
