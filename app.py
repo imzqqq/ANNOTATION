@@ -31,31 +31,38 @@ UPLOAD_FOLDER = './uploads'
 @app.route('/', methods=['POST', 'GET'])
 def index():
     """"目前只支持上传英文名"""
+    flag_upload_successed = False
     print("request method: ", request.method, "\nREQUEST: ", request, "\nREQUEST FILES: ", request.files)
     if request.method == 'POST':
         #获取上传文件
-        file = request.files['image_uploads']
-        print("dir_file: ", dir(file))
+        files = []
+        files = request.files.getlist('image_uploads')
+        print("\n------files------:", files)
         #检查文件对象是否存在且合法
-        if file and allowed_file(file.filename): 
-            #把汉字文件名抹掉了，所以下面多一道检查
-            filename = secure_filename(file.filename) 
-            if filename != file.filename:
-                print("filename != file.filename---")
-                flash("only support ASCII name")
-                return render_template('index.html')            
-            #save
-            try:
-                #现在似乎不会出现重复上传同名文件的问题
-                print("try---")
-                file.save(os.path.join(UPLOAD_FOLDER, filename)) 
-            except FileNotFoundError:
-                print("try mkdir---")
-                os.mkdir(UPLOAD_FOLDER)
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
+        for file in files:
+            print("\n------file------:", file)
+            if file and allowed_file(file.filename): 
+                #把汉字文件名抹掉了，所以下面多一道检查
+                filename = secure_filename(file.filename) 
+                if filename != file.filename:
+                    print("filename != file.filename---")
+                    flash("only support ASCII name")
+                    return render_template('index.html')            
+                #save
+                try:
+                    #现在似乎不会出现重复上传同名文件的问题
+                    print("---try---")
+                    file.save(os.path.join(UPLOAD_FOLDER, filename)) 
+                    copy_photo_to_static(filename) 
+                except FileNotFoundError:
+                    print("---try mkdir---")
+                    os.mkdir(UPLOAD_FOLDER)
+                    file.save(os.path.join(UPLOAD_FOLDER, filename))
+                flag_upload_successed = True
+            else:
+                return 'Upload Failed'
+        if flag_upload_successed:
             return redirect(url_for('update', fileName = filename))
-        else:
-            return 'Upload Failed'
     else: 
         #GET方法
         return render_template('index.html')
@@ -69,13 +76,9 @@ def copy_photo_to_static(filename):
 @app.route('/upload/<path:fileName>', methods=['GET'])
 def update(fileName):
     """输入url加载图片；上传图片，也会重定向到这里"""
-    copy_photo_to_static(fileName) 
-    # return render_template('index.html', fname='images/' + fileName, result=result)
-    fname = 'images/' + fileName
     result = dict()
     result['message'] = 'saved successfully'
     return jsonify(result)
-    # return redirect(request.referrer)
 
 @app.route('/<template>')
 def route_template(template):
