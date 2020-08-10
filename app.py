@@ -51,7 +51,7 @@ def index():
                 #save
                 try:
                     #现在似乎不会出现重复上传同名文件的问题
-                    print("---try---")
+                    # print("---try---")
                     file.save(os.path.join(UPLOAD_FOLDER, filename)) 
                     copy_photo_to_static(filename) 
                 except FileNotFoundError:
@@ -63,7 +63,7 @@ def index():
                 return 'Upload Failed'
         if flag_upload_successed:
             return redirect(url_for('update', fileName = filename))
-    else: 
+    else:
         #GET方法
         return render_template('index.html')
 
