@@ -116,8 +116,8 @@ $(function(e) {
             console.log("labelid: " + active_label.id);
             active_label.className = "label";
             active_label.style.position = 'absolute';
-            active_label.style.top = startY - 15 + 'px';
-            active_label.style.left = startX + 'px';
+            active_label.style.top = startY - 18 + 'px';
+            active_label.style.left = startX - 3 + 'px';
             document.body.appendChild(active_label);
             $(active_label).html('<div class="box_label">' + "<font size=2>" + $('#ann input:checked').val() + "</font>" + "</div>");
         } else if (document.getElementById("moving_box") !== null) {
