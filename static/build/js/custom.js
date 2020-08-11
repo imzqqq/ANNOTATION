@@ -59,30 +59,25 @@ function updateImageDisplay() {
 
 function initPage() {
     sampleCount = input.files.length;
-    console.log("sampleCount---%d", sampleCount);
     $('#total').text(input.files.length);
     loadSamplePic(sampleCurrentIndex);
 
     $('#side_left').click(function() {
         initCurTagStatus();
         $('#btn_save').click();
-        console.log("sampleCurrentIndex---side_left--before---%d", sampleCurrentIndex);
         sampleCurrentIndex -= 1;
         if (sampleCurrentIndex < 0) {
             sampleCurrentIndex = sampleCount - 1;
         }
-        console.log("sampleCurrentIndex---side_left--after---%d", sampleCurrentIndex);
         loadSamplePic(sampleCurrentIndex);
     });
     $('#side_right').click(function() {
         initCurTagStatus();
         $('#btn_save').click();
-        console.log("sampleCurrentIndex---side_right--before---%d", sampleCurrentIndex);
         sampleCurrentIndex += 1;
         if (sampleCurrentIndex > sampleCount - 1) {
             sampleCurrentIndex = 0;
         }
-        console.log("sampleCurrentIndex---side_right--after---%d", sampleCurrentIndex);
         loadSamplePic(sampleCurrentIndex);
     });
     $(document).keyup(function(event) {
@@ -110,17 +105,6 @@ function initPage() {
         }
     });
     $('#btn_save').click(function() {
-        //跳转、前后翻页和保存都会出发，故在此初始化radio
-        var all_radio = document.getElementsByName("tooth");
-        var radio_length = all_radio.length;
-        for (var i = 0; i < radio_length; i++) {
-            if (i == 0) {
-                all_radio[0].setAttribute('checked', true);
-            } else {
-                all_radio[i].setAttribute('checked', false);
-            }
-        }
-
         if (JSON.stringify(boxListOfSample) == '{}') {
             layer.msg('请先进行标注!!!');
             return;
@@ -135,11 +119,7 @@ function initPage() {
         boxId = 1;
         boxListOfSample = {};
 
-
-
-
         var all_labels = document.getElementsByClassName("label");
-        console.log("all_labels: ", all_labels);
         var newArr = [];
         for (var i = 0; i < all_labels.length; i++) {
             newArr.push(all_labels[i]);
@@ -147,10 +127,9 @@ function initPage() {
         for (var i = 0; i < newArr.length; i++) {
             document.body.removeChild(newArr[i]);
         }
-
-
     });
-    get_labels(); //将标签类型加载到下拉菜单中
+    //将标签类型加载到下拉菜单中
+    get_labels();
     $('#annotation-type').click(function() {
         $(document).focus();
     });
@@ -194,7 +173,6 @@ function loadSamplePic(index) {
     var curFile = Files[index];
     picNameStr = curFile.name;
     img_url = "/api/annotation/sample?index=" + picNameStr + '&time=' + new Date();
-    console.log("img_url: " + img_url);
     $('#img-item').css({ "background": "url('" + img_url + "')   left top/contain no-repeat" });
     //当前文件
     $('#cur_id').html(picNameStr);
@@ -257,8 +235,4 @@ function format2Time(uData) {
     var minute = myDate.getMinutes();
     var second = myDate.getSeconds();
     return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
-}
-
-function clickRadio() {
-    console.log(document.querySelector('.radio-table tbody input[type=radio]:checked'));
 }

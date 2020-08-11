@@ -1,6 +1,3 @@
-var all_radio = document.getElementsByName("tooth");
-var radio_length = all_radio.length;
-
 $(function(e) {
     e = e || window.event;
     // startX, startY 为鼠标点击时初始坐标
@@ -47,13 +44,11 @@ $(function(e) {
         // 如果鼠标在 box 上按下右键
         if (e.target.className.match(/box/)) {
             document.body.removeChild(e.target);
-            // console.log(e.target);
-            // console.log("lab: " + lab);
             delete boxListOfSample[$(e.target).attr('box_id')]; //默认为空
             updateCurTagStatus();
             var lab = 'label_' + $(e.target).attr('box_id');
             cur_lab = document.getElementById(lab);
-            // console.log("cur_lab: " + cur_lab);
+            //初始化标注的文字框
             $(cur_lab).html('');
             $('#cur_loc').html('');
             //不继续传递右键事件，即不弹出菜单
@@ -83,29 +78,30 @@ $(function(e) {
         // 禁止拖动
         dragging = false;
         if (document.getElementById("active_box") !== null) {
+            /**************************************************************/
+            //牙位更新radio
+            var curToothPosition = $('input[name="tooth"]:checked').val();
+            var all_radio = document.getElementsByName("tooth");
+            var radio_length = all_radio.length;
+            console.log("\n---curToothPosition: " + curToothPosition, "---" + "\nall radio: " + all_radio);
+            for (var i = 0; i < radio_length; i++) {
+                console.log("all_radio[", i, "]", all_radio[i]);
+                console.log("i1= " + i);
+                if (all_radio[i].checked) {
+                    all_radio[i].checked = false;
+                    if ((i + 1) == radio_length) {
+                        console.log("i2= " + i);
+                        all_radio[0].checked = true;
+                        alert("标注完成！");
+                        break;
+                    } else {
+                        all_radio[i + 1].checked = true;
+                        break;
+                    }
+                }
+            }
+            /**************************************************************/
             var ab = document.getElementById("active_box");
-            //牙位
-            // var curToothPosition = $('input[name="tooth"]:checked').val();
-            // console.log("curToothPosition: " + curToothPosition);
-            /**************************************************************/
-            //更新radio
-            // for (var i = 0; i < radio_length; i++) {
-            //     // console.log("all_radio[", i, "]", all_radio[i]);
-            //     console.log("i1= " + i);
-            //     if (all_radio[i].checked) {
-            //         all_radio[i].setAttribute('checked', false);
-            //         if ((i + 1) == radio_length) {
-            //             console.log("i2= " + i);
-            //             all_radio[0].setAttribute('checked', true);
-            //             alert("标注完成！");
-            //             break;
-            //         } else {
-            //             all_radio[i + 1].setAttribute('checked', true);
-            //             break;
-            //         }
-            //     }
-            // }
-            /**************************************************************/
             ab.removeAttribute("id");
             updateLoc(ab);
             //标签类别
@@ -113,7 +109,6 @@ $(function(e) {
             var active_label = document.createElement("div");
             curboxid = boxId - 1;
             active_label.id = 'label_box_' + curboxid;
-            console.log("labelid: " + active_label.id);
             active_label.className = "label";
             active_label.style.position = 'absolute';
             active_label.style.top = startY - 18 + 'px';

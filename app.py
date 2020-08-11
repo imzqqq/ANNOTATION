@@ -21,8 +21,8 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'bmp', 'jpeg', "PNG", "JPG", 'BMP', 'JPE
 
 #check type
 def allowed_file(filename):
-    return '.' in filename and filename.split('.', 1)[1] in ALLOWED_EXTENSIONS 
     # 圆括号中的1是分割次数
+    return '.' in filename and filename.split('.', 1)[1] in ALLOWED_EXTENSIONS 
 
 #upload path和云端保存路径是分开的
 UPLOAD_FOLDER = './uploads'
@@ -32,30 +32,25 @@ UPLOAD_FOLDER = './uploads'
 def index():
     """"目前只支持上传英文名"""
     flag_upload_successed = False
-    print("request method: ", request.method, "\nREQUEST: ", request, "\nREQUEST FILES: ", request.files)
+    print("REQUEST METHOD: ", request.method, "\nREQUEST: ", request, "\nREQUEST FILES: ", request.files)
     if request.method == 'POST':
         #获取上传文件
         files = []
         files = request.files.getlist('image_uploads')
-        # print("\n------files------:", files)
         #检查文件对象是否存在且合法
         for file in files:
-            # print("\n------file------:", file)
             if file and allowed_file(file.filename): 
                 #把汉字文件名抹掉了，所以下面多一道检查
                 filename = secure_filename(file.filename) 
                 if filename != file.filename:
-                    # print("filename != file.filename---")
                     flash("only support ASCII name")
                     return render_template('index.html')            
                 #save
                 try:
-                    #现在似乎不会出现重复上传同名文件的问题
-                    # print("---try---")
+                    #现在不会出现重复上传同名文件的问题
                     file.save(os.path.join(UPLOAD_FOLDER, filename)) 
                     copy_photo_to_static(filename) 
                 except FileNotFoundError:
-                    # print("---try mkdir---")
                     os.mkdir(UPLOAD_FOLDER)
                     file.save(os.path.join(UPLOAD_FOLDER, filename))
                 flag_upload_successed = True
@@ -99,12 +94,9 @@ def get_labels():
 def get_sample():
     #对前端返回的request数据处理
     if 'index' in request.args:
-        print("\n---request---", request)
         # img_name需要request里面的index字段的值
         img_name = request.args['index']
-        # print("---img_name---", img_name)
         img_path = os.path.join(sys_config.SAMPLE_FILE_PATH, img_name)
-        # print("---img_path---", img_path)
         # Sends the contents of a file to the client.
         return send_file(img_path, mimetype='application/octet-stream',
                          as_attachment=True, attachment_filename=img_name)
@@ -135,7 +127,7 @@ def save_annotation():
             file.close()
             mu.release()
     except Exception as e:
-        print(e)
+        print("!!!Exception: ", e, "!!!")
     result = dict()
     result['message'] = '保存成功！'
     return jsonify(result)
