@@ -78,6 +78,10 @@ $(function(e) {
         // 禁止拖动
         dragging = false;
         if (document.getElementById("active_box") !== null) {
+
+            var ab = document.getElementById("active_box");
+            ab.removeAttribute("id");
+            updateLoc(ab);
             /**************************************************************/
             //牙位更新radio
             var curToothPosition = $('input[name="tooth"]:checked').val();
@@ -101,9 +105,6 @@ $(function(e) {
                 }
             }
             /**************************************************************/
-            var ab = document.getElementById("active_box");
-            ab.removeAttribute("id");
-            updateLoc(ab);
             //标签类别
             // 在页面创建 box
             var active_label = document.createElement("div");
