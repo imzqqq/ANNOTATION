@@ -41,9 +41,10 @@ def index():
         for file in files:
             if file and allowed_file(file.filename): 
                 #把汉字文件名抹掉了，所以下面多一道检查
-                filename = secure_filename(file.filename) 
+                # filename = secure_filename(file.filename) 
+                filename = file.filename
                 if filename != file.filename:
-                    flash("only support ASCII name")
+                    flash("file name error!!!")
                     return render_template('index.html')            
                 #save
                 try:
@@ -113,11 +114,13 @@ def save_annotation():
     for tag in tags.split('\n'):
         if tag == '':
             continue
+        #除图片名字之外的都分割到一起
         values = tag.split(',', maxsplit=1)
-        tags_new += values[0] + '.' + sys_config.SAMPLE_FILE_TYPE + ',' + values[1]+'\n'
+        tags_new += values[0]  + ',' + values[1]+'\n'
 
     path_annotation = 'annotation/annotation.txt'
     try:
+        # lock
         if mu.acquire(True):
             if not os.path.exists(path_annotation):
                 file = codecs.open(path_annotation, mode='a+', encoding='utf-8')
@@ -127,7 +130,7 @@ def save_annotation():
             file.close()
             mu.release()
     except Exception as e:
-        print("!!!Exception: ", e, "!!!")
+        print("Exception: ", e, "!!!")
     result = dict()
     result['message'] = '保存成功！'
     return jsonify(result)

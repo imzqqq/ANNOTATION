@@ -128,6 +128,10 @@ function initPage() {
             document.body.removeChild(newArr[i]);
         }
     });
+    //下载excel格式的标注数据
+    $('#btn_download').click(function() {
+        alert("下载成功！");
+    });
     //将标签类型加载到下拉菜单中
     get_labels();
     $('#annotation-type').click(function() {
@@ -151,9 +155,9 @@ function get_labels() {
                     var text = result.data[i].desc;
                     // 修改标注类型,默认选中第一个
                     if (index == 0) {
-                        html += '<tr><td><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '" onclick="clickRadio()"></td><td>';
+                        html += '<tr><td><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '"></td><td>';
                     } else {
-                        html += '<tr><td><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '" onclick="clickRadio()"></td><td>';
+                        html += '<tr><td><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '"></td><td>';
                     }
                     html += ' ' + text + '</td></tr>';
                     index++;

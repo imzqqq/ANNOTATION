@@ -168,7 +168,9 @@
                         <span><b>所有样本标注状态：</b></span>
                         <textarea class="form-control" id="annotation_total_status"  rows="8"></textarea>
                     </div>
-                    <br/><br/><br/><br/><br/>
+                    <br/>
+                    <button class="btn btn-primary" id="btn_download" type="button">下载</button>
+                    <br/><br/><br/><br/>
                 </div>
                 <div class="col-md-5">
                     <div >
@@ -185,7 +187,6 @@
         {% for msg in get_flashed_messages() %}
             <p>{{msg}}</p>
         {% endfor %}
-
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>

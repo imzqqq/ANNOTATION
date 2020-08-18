@@ -87,14 +87,10 @@ $(function(e) {
             var curToothPosition = $('input[name="tooth"]:checked').val();
             var all_radio = document.getElementsByName("tooth");
             var radio_length = all_radio.length;
-            console.log("\n---curToothPosition: " + curToothPosition, "---" + "\nall radio: " + all_radio);
             for (var i = 0; i < radio_length; i++) {
-                console.log("all_radio[", i, "]", all_radio[i]);
-                console.log("i1= " + i);
                 if (all_radio[i].checked) {
                     all_radio[i].checked = false;
                     if ((i + 1) == radio_length) {
-                        console.log("i2= " + i);
                         all_radio[0].checked = true;
                         alert("标注完成！");
                         break;
@@ -130,13 +126,14 @@ $(function(e) {
         y_right = y_left + $(obj).height();
         var regionLoc = x_left + ',' + y_left; //2个坐标
         $('#cur_loc').html(regionLoc);
+        var regionLocBRC = x_right + ',' + y_right;
         //照片id
         var picId = $('#cur_id').html();
         //标签类别
         var regionClass = $('#ann input:checked').val();
         //牙位
         var toothPosition = $('input[name="tooth"]:checked').val();
-        tagStr = picId + ',' + regionLoc + "," + regionClass + "," + toothPosition;
+        tagStr = picId + ',' + regionLoc + ',' + regionLocBRC + "," + regionClass + "," + toothPosition;
         box_id = $(obj).attr('box_id');
         boxListOfSample[box_id] = tagStr;
         updateCurTagStatus();
