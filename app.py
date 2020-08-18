@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 import config as sys_config
 import utils.tool as tool
+from toexcel import toExcel
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -134,6 +135,17 @@ def save_annotation():
     result = dict()
     result['message'] = '保存成功！'
     return jsonify(result)
+
+@app.route('/return-files/')
+def return_files_tut():
+    if mu.acquire(True):
+        path_annotation = 'annotation/annotation.txt'
+        toExcel(path_annotation)
+        mu.release()
+    try:
+        return send_file('annotation/annotation.xlsx', attachment_filename='annotation.xlsx')
+    except Exception as e:
+        return str(e)
 
 # Errors
 @app.errorhandler(403)

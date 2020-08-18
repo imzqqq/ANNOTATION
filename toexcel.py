@@ -190,7 +190,7 @@ def toExcel(path_annotation):
                 tmp_aps["day"] = drai2[6]
                 tmp_aps["file_name"] = aps[0]
         result_list.append(tmp_aps)
-    # print(result_list, "\n\n---\n")
+    print(result_list, "\n\n---\n")
 
 
     pf = pd.DataFrame(result_list)
@@ -201,7 +201,7 @@ def toExcel(path_annotation):
             '48', '47', '46', '45', '44', '43', '42', '41',
             '31', '32', '33', '34', '35', '36', '37', '38']  # 指定列的顺序
     pf = pf[order]
-    file_path = pd.ExcelWriter('annotation.xlsx')  # 打开excel文件
+    file_path = pd.ExcelWriter('annotation/annotation.xlsx')  # 打开excel文件
     # 替换空单元格
     pf.fillna(' ', inplace=True)
     # 输出
@@ -209,5 +209,6 @@ def toExcel(path_annotation):
     file_path.save()
 
 
-
+path_annotation = 'annotation/annotation.txt'
+toExcel(path_annotation)
 
