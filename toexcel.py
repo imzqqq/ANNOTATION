@@ -177,6 +177,7 @@ def toExcel(path_annotation):
         all_patient_score[drai[0]] = each_patient_score
     # print(all_patient_score, "\n\n---\n")
 
+    i = 1
     for aps in all_patient_score.items():
         tmp_aps = dict()
         for drai2 in deduplication_re_all_item:
@@ -189,13 +190,15 @@ def toExcel(path_annotation):
                 tmp_aps["month"] = drai2[5]
                 tmp_aps["day"] = drai2[6]
                 tmp_aps["file_name"] = aps[0]
+                tmp_aps["id"] = i
+                i = i + 1
         result_list.append(tmp_aps)
     # print(result_list, "\n\n---\n")
 
 
     pf = pd.DataFrame(result_list)
     # print(pf)
-    order = ['file_name', "patient_name", "age", 'sex', 'year', 'month', 'day', 'review_flag',
+    order = ['id', 'file_name', "patient_name", "age", 'sex', 'year', 'month', 'day', 'review_flag',
             '18', '17', '16', '15', '14', '13', '12', '11',
             '21', '22', '23', '24', '25', '26', '27', '28',
             '48', '47', '46', '45', '44', '43', '42', '41',

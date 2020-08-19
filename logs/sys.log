@@ -10717,3 +10717,5 @@
 2020-08-19 12:48:13,004 WARNING:  * Debugger is active! [in _internal._log:113]
 2020-08-19 12:48:13,010 INFO:  * Debugger PIN: 142-115-358 [in _internal._log:113]
 2020-08-19 12:48:13,022 INFO:  * Running on http://0.0.0.0:10042/ (Press CTRL+C to quit) [in _internal._log:113]
+2020-08-19 15:46:17,984 INFO:  * Detected change in 'e:\\ANNOTATION\\toexcel.py', reloading [in _internal._log:113]
+2020-08-19 15:46:18,132 INFO:  * Restarting with stat [in _internal._log:113]
