@@ -190,7 +190,7 @@ def toExcel(path_annotation):
                 tmp_aps["day"] = drai2[6]
                 tmp_aps["file_name"] = aps[0]
         result_list.append(tmp_aps)
-    print(result_list, "\n\n---\n")
+    # print(result_list, "\n\n---\n")
 
 
     pf = pd.DataFrame(result_list)
