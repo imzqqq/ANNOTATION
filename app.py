@@ -1,4 +1,5 @@
 import codecs
+import sys
 import hashlib
 import json
 import threading
@@ -12,12 +13,9 @@ from PIL import Image
 import config as sys_config
 import utils.tool as tool
 from toexcel import toExcel
-import sys
-from importlib import reload
 
-# 解决编码问题
-reload(sys)
-sys.setdefaultencoding('utf8') 
+# encoding
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
 
 app = Flask(__name__)
 app.config.from_object('config')
