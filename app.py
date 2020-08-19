@@ -33,7 +33,7 @@ UPLOAD_FOLDER = './uploads'
 def index():
     """"目前只支持上传英文名"""
     flag_upload_successed = False
-    print("REQUEST METHOD: ", request.method, "\nREQUEST: ", request, "\nREQUEST FILES: ", request.files)
+    # print("REQUEST METHOD: ", request.method, "\nREQUEST: ", request, "\nREQUEST FILES: ", request.files)
     if request.method == 'POST':
         #获取上传文件
         files = []
