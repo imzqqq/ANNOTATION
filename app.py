@@ -13,6 +13,7 @@ import config as sys_config
 import utils.tool as tool
 from toexcel import toExcel
 import sys
+from importlib import reload
 
 # 解决编码问题
 reload(sys)
