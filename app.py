@@ -12,6 +12,11 @@ from PIL import Image
 import config as sys_config
 import utils.tool as tool
 from toexcel import toExcel
+import sys
+
+# 解决编码问题
+reload(sys)
+sys.setdefaultencoding('utf8') 
 
 app = Flask(__name__)
 app.config.from_object('config')
