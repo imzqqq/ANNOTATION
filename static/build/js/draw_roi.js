@@ -129,11 +129,13 @@ $(function(e) {
         var regionLocBRC = x_right + ',' + y_right;
         //照片id
         var picId = $('#cur_id').html();
+        //拍片的日期
+        var shootDate = document.querySelector('input[type="date"]').value;
         //标签类别
         var regionClass = $('#ann input:checked').val();
         //牙位
         var toothPosition = $('input[name="tooth"]:checked').val();
-        tagStr = picId + ',' + regionLoc + ',' + regionLocBRC + "," + regionClass + "," + toothPosition;
+        tagStr = picId + ',' + shootDate + ',' + regionLoc + ',' + regionLocBRC + ", " + regionClass + ", " + toothPosition;
         box_id = $(obj).attr('box_id');
         boxListOfSample[box_id] = tagStr;
         updateCurTagStatus();
@@ -157,7 +159,7 @@ function updateCurTagStatus() {
     textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
 }
 
-// 累加CurTagStatus列表
+// 全部CurTagStatus列表
 function updateTotalTagStatus() {
     tagStrTotal = '';
     for (key in boxListOfSample) {

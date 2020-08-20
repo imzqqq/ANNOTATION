@@ -68,6 +68,14 @@ form button {
     height: auto;
 }
 
+form input {
+    padding: 5px 5px;
+    border-radius: 5px;
+    border: 1px ridge black;
+    font-size: 1rem;
+    height: auto;
+}
+
 form label:hover,
 form button:hover {
     background-color: #2D5BA3;

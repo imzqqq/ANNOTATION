@@ -135,9 +135,9 @@
                     <div>
                         <br/>
                     </div>
-                    <div id="annotation-type">
+                    <form id="annotation-type">
                         <b>标注类型</b>
-                    </div>
+                    </form>
                     <div>
                         <br/>
                     </div>
@@ -146,6 +146,14 @@
                         <input type="text" id="jump_page" value="" style="width:100px" placeholder="跳转到指定页"/>
                         <span><b>当前文件：</b><strong id="cur_id"></strong></span>
                         <span><b>坐标区域：</b><strong id="cur_loc"></strong></span>
+                    </div>
+                    <br/>
+                    <div>
+                        <form >
+                            <label for="party">拍片日期 </label>&nbsp;
+                            <input type="date" id="shootingDate" name="shootingDate" min="1900-01-01" required >
+                            <span class="validity"></span>
+                        </form>
                     </div>
                 </div>
             </div>

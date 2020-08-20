@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# coding: utf-8
+
+
+#!/usr/bin/env python
 # -*-coding: utf-8-*-
 import xlsxwriter
 import codecs
@@ -17,6 +21,7 @@ import csv
 import codecs
 import xlwt
 import pandas as pd
+import datetime
 
 def toExcel(path_annotation):
     global_all_line = []
@@ -35,13 +40,15 @@ def toExcel(path_annotation):
     for i in global_all_line:
         line_item = i.split(',')
         global_all_line_item.append(line_item)
-    # print("\n---\n", global_all_line_item, "\n---\n")
+    print("\n---\n", global_all_line_item, "\n---\n")
+
 
     #获取所有条目对应的文件名，并除去后缀
     for each_line_item in global_all_line_item:
         all_item_name_without_suffix.append(each_line_item[0].split('.')[0])
-    # print(all_item_name_without_suffix, "\n\n---\n")
-        
+    print(all_item_name_without_suffix, "\n\n---\n")
+    
+
     #文件名清洗，获得“性别、年龄、年、月、日”
     for each_item in all_item_name_without_suffix:
         tmp_all_item = []
@@ -60,6 +67,8 @@ def toExcel(path_annotation):
         re_all_item.append(tmp_combine)
     # print(re_all_item, "\n\n---\n")
 
+
+
     #TODO文件名去重，判断是否有多个标注者，若有则加到需要复核的列表中；
     # 先把列表中每个元素转化为tuple，因为list不可哈希但是tuple可哈希
     deduplication_re_all_item = []
@@ -68,15 +77,18 @@ def toExcel(path_annotation):
             deduplication_re_all_item.append(re_item)
     # print(deduplication_re_all_item, "\n\n---\n")
 
+
     #TODO若同一个文件漏标，则添加到漏标列表中；
     #将同一个文件名的条目拼接，“唯一数字id、文件名、姓名、性别、年龄、年、月、日、坐标、牙评分（18-28-48-38）”
     all_patient_score = dict()
     for drai in deduplication_re_all_item:
         review_flag = False
         each_patient_score = dict()
+        shoot_date = ''
         for gali in global_all_line_item:
             if(drai[0] == gali[0]):
-                each_patient_score[gali[-1].replace("\n", "")] = gali[-2]
+                shoot_date = gali[1]
+                each_patient_score[gali[-1].replace("\n", "").strip()] = gali[-2].strip()
         if('18' not in each_patient_score):
             each_patient_score['18'] = 'NaN'
             review_flag = True
@@ -174,31 +186,69 @@ def toExcel(path_annotation):
             each_patient_score['38'] = 'NaN'
             review_flag = True
         each_patient_score['review_flag'] = review_flag
+        each_patient_score['shoot_date'] = shoot_date
         all_patient_score[drai[0]] = each_patient_score
-    # print(all_patient_score, "\n\n---\n")
+    print(all_patient_score, "\n\n---\n")
 
-    i = 1
+
+
+    # 判断是否闰年
+    def is_leap(year):
+        if year % 400 == 0 or year % 40 == 0 or year % 4 == 0:
+            return True
+        else:
+            return False
+        
+    # 计算
+    month_days = {1:31, 2:28, 3:31, 4:30, 5:31, 6:30, 7:31, 8:31, 9:30, 10:31, 11:30, 12:31}
+    def minus_result(first_year, second_year):
+        y = first_year.year - second_year.year
+        m = first_year.month - second_year.month
+        d = first_year.day - second_year.day
+        if d < 0:
+            if second_year.month == 2:
+                if is_leap(second_year.year):
+                    month_days[2] = 29
+            d += month_days[second_year.month]
+            m -= 1
+        if m < 0:
+            m += 12
+            y -= 1
+        return y, m, d
+
+
+
+    i =1
     for aps in all_patient_score.items():
         tmp_aps = dict()
         for drai2 in deduplication_re_all_item:
             if(aps[0] == drai2[0]):
                 tmp_aps = aps[1]
+                cur_shoot_date_year = tmp_aps["shoot_date"].split('-')[0]
+                cur_shoot_date_month = tmp_aps["shoot_date"].split('-')[1]
+                cur_shoot_date_day = tmp_aps["shoot_date"].split('-')[2]
+                cur_year = drai2[4]
+                cur_month = drai2[5]
+                cur_day = drai2[6]
+                cur_birth_date = datetime.date(int(cur_year), int(cur_month), int(cur_day))
+                cur_shoot_date = datetime.date(int(cur_shoot_date_year), int(cur_shoot_date_month), int(cur_shoot_date_day))              
+                y, m, d = minus_result(cur_shoot_date, cur_birth_date)
                 tmp_aps["patient_name"] = drai2[1]
                 tmp_aps["sex"] = drai2[2]
-                tmp_aps["age"] = drai2[3]
-                tmp_aps["year"] = drai2[4]
-                tmp_aps["month"] = drai2[5]
-                tmp_aps["day"] = drai2[6]
+                tmp_aps["year_age"] = y
+                tmp_aps["month_age"] = m
+                tmp_aps["day_age"] = d
                 tmp_aps["file_name"] = aps[0]
                 tmp_aps["id"] = i
-                i = i + 1
+                i = i + 1                                       
         result_list.append(tmp_aps)
     # print(result_list, "\n\n---\n")
 
 
+
     pf = pd.DataFrame(result_list)
     # print(pf)
-    order = ['id', 'file_name', "patient_name", "age", 'sex', 'year', 'month', 'day', 'review_flag',
+    order = ['id', 'file_name', "patient_name", 'sex', 'year_age', 'month_age', 'day_age', 'review_flag',
             '18', '17', '16', '15', '14', '13', '12', '11',
             '21', '22', '23', '24', '25', '26', '27', '28',
             '48', '47', '46', '45', '44', '43', '42', '41',
@@ -211,7 +261,5 @@ def toExcel(path_annotation):
     pf.to_excel(file_path, encoding='utf-8', index=False, sheet_name="sheet1")
     file_path.save()
 
-
-path_annotation = 'annotation/annotation.txt'
-toExcel(path_annotation)
-
+# path_annotation = 'annotation/annotation.txt'
+# toExcel(path_annotation)

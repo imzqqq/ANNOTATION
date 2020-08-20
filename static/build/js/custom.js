@@ -61,7 +61,14 @@ function initPage() {
     sampleCount = input.files.length;
     $('#total').text(input.files.length);
     loadSamplePic(sampleCurrentIndex);
-
+    // 初始化日期为今天
+    $(document).ready(function() {
+        var time = new Date();
+        var day = ("0" + time.getDate()).slice(-2);
+        var month = ("0" + (time.getMonth() + 1)).slice(-2);
+        var today = time.getFullYear() + "-" + (month) + "-" + (day);
+        $('#shootingDate').val(today);
+    });
     $('#side_left').click(function() {
         initCurTagStatus();
         $('#btn_save').click();
@@ -147,7 +154,7 @@ function get_labels() {
         beforeSend: function() {},
         success: function(result) {
             if (result.message == '保存成功！') {
-                var html = '<b>标注类型</b>&nbsp;&nbsp;&nbsp;<table class="radio-table" border id="ann" name="annotation" style="width:850px" ><tbody>';
+                var html = '<span><b>标注类型</b></span><br/><br/><span></span><div class="form-group" id="ann" name="annotation">';
                 index = 0;
                 for (var i in result.data) {
                     var id = 'region_' + result.data[i].name;
@@ -155,14 +162,14 @@ function get_labels() {
                     var text = result.data[i].desc;
                     // 修改标注类型,默认选中第一个
                     if (index == 0) {
-                        html += '<tr><td><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '"></td><td>';
+                        html += '<label class="radio-inline"><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '">';
                     } else {
-                        html += '<tr><td><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '"></td><td>';
+                        html += '<label class="radio-inline"><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '">';
                     }
-                    html += ' ' + text + '</td></tr>';
+                    html += ' ' + text + '</label>';
                     index++;
                 }
-                html += '</tbody></table>';
+                html += '</div>';
                 $('#annotation-type').html(html);
             }
         },
