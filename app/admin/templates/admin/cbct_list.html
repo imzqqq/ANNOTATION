@@ -1,0 +1,53 @@
+{% extends 'admin/common/base.html' %}
+{% import "admin/macros/_patination.html" as page_macros %}
+{% block title %}CBCT列表{% endblock %}
+
+{% block js %}
+{{super()}}
+<script>
+    function update(name) {
+        var text=document.getElementById(name);
+        var val=text.title;
+        text.innerHTML="<input type='text' id='text' style='width:13rem; ' value="+val+"><br/><input type='button' id='btn_1' data-key='1' value='取消'><input type='button' id='btn_2' data-key='2' value='确定'>";
+        document.getElementById("btn_1").addEventListener("click",function(){
+            text.innerHTML = val;
+        });
+        document.getElementById("btn_2").addEventListener("click",function(){
+            var input=document.getElementById("text");
+            text.innerHTML = input.value;
+            $.ajax({
+                url: "{{url_for('admin.picture_edit')}}",
+                type: 'post',
+                data: { 'pic_id': name, 'update_name': input.value},
+                cache: false,
+                dataType: 'json',
+                beforeSend: function() {},
+                success: function () {
+                }
+            });
+            alert('修改成功')
+        });
+    }
+</script>
+{% endblock %}
+
+
+{% block content%}
+<div class="container mt-1">
+    <div class="row">
+        {% for img in imgs.items%}
+            <div class="card m-1" style="width: 16rem;">
+                <img src="{{img.url}}" class="card-img-top rounded" style="height: 12rem;" alt="{{img.name}}">
+                <div class="card-body">
+                    <span id="{{img.id}}" style="font-weight: bold;" title="{{img.name}}">{{img.name}}</span><br/>
+                    <button id="rename" onclick="update({{img.id}})">重命名</button><br/>
+                    <span>{{ img.timestamp}}</span>
+{#                    <span><a href="{{ url_for('admin.picture_edit', pic_name=img.name) }}">修改</a></span>#}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {{ page_macros.pagination_widget(imgs, request.endpoint) }}
+</div>
+
+{% endblock %}

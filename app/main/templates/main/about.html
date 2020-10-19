@@ -1,0 +1,51 @@
+{% extends 'common/base.html' %} 
+{% import "macros/_patination.html" as page_macros %} 
+{% block css %} 
+  {{ super() }}
+  <link
+    href="{{ url_for('main.static', filename='css/detail.css') }}"
+    rel="stylesheet"
+  />
+  <link
+    href="{{ url_for('main.static', filename='css/monokai.css') }}"
+    rel="stylesheet"
+  />
+  <link
+    href="{{ url_for('main.static', filename='css/base_comment.css') }}"
+    rel="stylesheet"
+  />
+{% endblock %} 
+{% block title %}关于{{ super() }}{% endblock %} 
+{% block keywords %} 关于 {% endblock %} 
+{% block description %} 关于本网站的介绍 {% endblock %} 
+
+{% block content %}
+  <div class="card rounded-0 border-0" id="article">
+    <div class="card-body px-2 px-md-3 pb-0">
+      <h1 class="card-title text-center font-weight-bold">关于</h1>
+      <hr />
+      <div class="text-center f-13">
+        <span
+          class="mx-2"
+          data-toggle="tooltip"
+          data-placement="bottom"
+          title=""
+          data-original-title="最后编辑于2020年10月11日"
+          >2020年10月11日 00:53</span
+        >
+        <span class="mx-2">阅读 999+</span>
+      </div>
+      <div class="article-body mt-4 f-17" style="line-height: 1.8">
+        <p>
+          <img
+            alt="  "
+            src="{{url_for('main.static', filename='img/logo_milab.png')}}"
+            title="  "
+          />
+        </p>
+        <p>Machine Intelligence Lab</p>
+      </div>
+      <div class="tag-cloud my-4"></div>
+    </div>
+  </div>
+{% endblock %}

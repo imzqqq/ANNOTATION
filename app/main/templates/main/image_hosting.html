@@ -1,0 +1,122 @@
+{% extends 'common/base_admin.html' %}
+{% import "macros/_patination.html" as page_macros %}
+
+{% block title %}图床{% endblock %}
+{% block css %}
+    {{super()}}
+    <style>
+        .selectCard {
+            border: 2px solid rgb(48, 4, 241);
+        }
+
+        .navbar img {
+            width: 80px;
+            height: 60px;
+        }
+    </style>
+{% endblock %}
+
+{% block js %}
+{{super()}}
+<script>
+    var index = parent.layer.getFrameIndex(window.name);
+    //上传文件，写入数据库中
+    $("#img-file").change(function () {
+        var formdata = new FormData();
+        formdata.append('file', $("#img-file")[0].files[0]);
+        $.ajax({
+            url: "{{url_for('main.upload')}}",
+            type: 'post',
+            data: formdata,
+            cache: false,
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.code === 1) {
+                    toastr.success(res.msg)
+                    window.location.reload();
+                } else {
+                    toastr.error(res.msg)
+                }
+            }
+        });
+    });
+
+    //点击添加图片，得到图片的名字，src,用ajax计算得到图片的大小
+    $('#ok').on('click', function () {
+        var img_url = $('#selectImg').prop('src');
+        var img_name = $('#selectImg').prop('alt');
+        if (img_url.indexOf('...') > 0) {
+            toastr.error('请选择图片');
+            return;
+        }
+        var obj = {};
+        obj.img_url = img_url;
+        obj.img_name = img_name;
+        obj.img_size ='';
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "{{url_for('main.query_pic')}}",
+            data: { 'url':  img_url },   //参数用标签写，用form获得
+            beforeSend: function() {},
+            success: function (res) {
+                 if (res.code === 1) {
+                     obj.img_size = res.size;
+                     {#console.log(obj.img_size);#}
+                     parent.imagehosting_callback(obj);  //直接callback
+                     parent.layer.close(index);
+                     toastr.success(res.msg)
+                     window.location.reload();
+                } else {
+                    toastr.error(res.msg)
+                }
+            }
+        });
+    });
+
+    //对已经上传的图片的点击->更新缩略图的属性
+    var current_card = null;
+    $('.card').click(function (e) {
+        $('.card').removeClass('selectCard')
+        $(this).addClass('selectCard');
+        current_card = $(this)
+        var img_cur_url = current_card.find('img').prop('src');
+        var img_cur_name = current_card.find('img').prop('alt');
+        $('#selectImg').prop('src', img_cur_url).prop('alt', img_cur_name);
+    });
+
+    $('#upload-btn').click(function (e) {
+        $("#img-file").trigger("click");
+    });
+</script>
+{% endblock %}
+
+{% block body %}
+
+<div class="container mt-1">
+    <div class="row">
+        {% for img in imgs.items%}
+            <div class="card m-1" style="width: 13rem;">
+                <img src="{{img.url}}" class="card-img-top rounded" style="height: 12rem;" alt="{{img.name}}">
+                <div class="card-body">
+                    <span>{{img.name}}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {{ page_macros.pagination_widget(imgs, request.endpoint) }}
+    <div class="m-3" style="height: 3rem;"></div>
+    <div class="row fixed-bottom bg-light navbar">
+        <input type="file" hidden id="img-file" accept="image/*"/>
+        <img id="selectImg" src="{{ url_for('.static', filename='pictures/upload_img.svg')}}" class="rounded float-left" alt="请选择图片">
+        <div>
+            <button id="upload-btn" class="btn btn-primary p-2">从本机选择图片</button>
+            <button id="ok" class="btn btn-primary p-2 m-2">确定添加</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

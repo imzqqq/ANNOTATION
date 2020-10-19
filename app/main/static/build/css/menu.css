@@ -1,0 +1,50 @@
+.header-menu{
+    top: 50px;
+    box-shadow: rgb(220, 220, 220) 0px 2px 10px;
+    background-color: #2D5BA3;
+    height: 60px;
+}
+.header-content {
+  width: 100%;
+  max-width: 1300px;
+  margin: auto;
+  padding: 22px 0;
+  height: 50px;
+}
+
+.header-content .header-user {
+  float: right;
+  position: relative;
+}
+
+.header-content .header-user .login {
+  color: #ffffff;
+  font-size: 16px;
+  display: block;
+  line-height: 36px;
+  float: left;
+}
+.header-content .header-user .username {
+  color: #ffffff;
+  font-size: 16px;
+  display: block;
+  line-height: 36px;
+  float: left;
+}
+
+.header-content .header-user .user-btn {
+  height: 30px;
+  width: 100px;
+    /*margin-top: ;*/
+  line-height: 32px;
+  border-radius: 20px;
+  border: 2px solid #ffffff;
+  box-sizing: border-box;
+  color: #ffffff;
+  text-align:center;
+  margin-left: 60px;
+  display: block;
+  background: rgba(255, 255, 255, 0.3);
+  float: left;
+}
+

@@ -1,0 +1,42 @@
+{% extends 'admin/common/base.html' %}
+{% block title %}标注列表{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>序号</th>
+          <th>标注用户</th>
+          <th>标志日期</th>
+          <th>文件大小</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for list in ann_lists %}
+          <tr>
+            <th scope="row">{{ loop.index }}</th>
+            <td>{{ list.user}}</td>
+            <td>{{ list.date}}</td>
+            <td>{{ list.size }}</td>
+            <td>
+                <a href="{{ url_for('admin.return_files', file_url=list.file_name) }}">下载</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+
+{##}
+{#<div class="admin-index">#}
+{#    <p>__标注列表__</p>#}
+{#    <br>#}
+{#</div>#}
+{% endblock %}
