@@ -16,5 +16,5 @@ python-dotenv
 Flask-Migrate
 Flask-SQLAlchemy
 xml2dict
-re
+regex
 datetime
