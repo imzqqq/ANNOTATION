@@ -14,6 +14,7 @@
 ## 使用方法
 1. 根据`requirements.txt`安装环境依赖
 ```build
+$ python3.8 -m venv env
 $ pip3 install -r requirements.txt
 $ flask initdb  (optional arg: --drop, for the first time use only)
 $ flask run

@@ -35,8 +35,7 @@ class BaseConfig(object):
     SAMPLE_FILE_PATH = os.path.join(basedir, 'uploads')
 
 
-    SECRET_KEY = os.getenv('SECRET_KEY') or hashlib.new(
-        name='md5', string='milab python@#').hexdigest()
+    SECRET_KEY = os.getenv('SECRET_KEY') or hashlib.new(name='md5', string='milab python@#').hexdigest()
 
     DEBUG_TB_INTERCEPT_REDIRECTS = False
 
