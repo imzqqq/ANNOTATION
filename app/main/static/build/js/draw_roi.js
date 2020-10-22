@@ -45,7 +45,12 @@ $(function(e) {
         if (e.target.className.match(/box/)) {
             document.body.removeChild(e.target);
             delete boxListOfSample[$(e.target).attr('box_id')]; //默认为空
+            // delete toothListOfSample[$(e.target).attr('box_id')]; //默认为空
             updateCurTagStatus();
+            console.log($(e.target).attr('box_id'));
+            console.log(toothListOfSample[$(e.target).attr('box_id')]);
+            deleteCurToothStatus(toothListOfSample[$(e.target).attr('box_id')])
+            delete toothListOfSample[$(e.target).attr('box_id')]; //默认为空
             var lab = 'label_' + $(e.target).attr('box_id');
             cur_lab = document.getElementById(lab);
             //初始化标注的文字框
@@ -78,10 +83,10 @@ $(function(e) {
         // 禁止拖动
         dragging = false;
         if (document.getElementById("active_box") !== null) {
-
             var ab = document.getElementById("active_box");
             ab.removeAttribute("id");
             updateLoc(ab);
+            updateTooth(ab);
             /**************************************************************/
             //牙位更新radio
             var curToothPosition = $('input[name="tooth"]:checked').val();
@@ -112,7 +117,8 @@ $(function(e) {
             active_label.style.left = startX - 3 + 'px';
             document.body.appendChild(active_label);
             $(active_label).html('<div class="box_label">' + "<font size=2>" + $('#ann input:checked').val() + "</font>" + "</div>");
-        } else if (document.getElementById("moving_box") !== null) {
+        }
+        else if (document.getElementById("moving_box") !== null) {
             var ab = document.getElementById("moving_box");
             updateLoc(ab);
         }
@@ -146,6 +152,13 @@ $(function(e) {
         boxListOfSample[box_id] = tagStr;
         updateCurTagStatus();
     }
+
+    function updateTooth(obj){
+         var toothPosition = $('input[name="tooth"]:checked').val();
+         box_id = $(obj).attr('box_id');
+         toothListOfSample[box_id] = toothPosition;
+         updateCurToothStatus(toothPosition);
+    }
 });
 
 // c初始化当前图片的status列表
@@ -165,6 +178,22 @@ function updateCurTagStatus() {
     textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
 }
 
+function updateCurToothStatus(toothPosition) {
+    tagStrTotal = '';
+    for (key in toothListOfSample) {
+        tagStrTotal += toothListOfSample[key] + '\n';
+    }
+    var radio_button = document.getElementsByClassName(toothPosition)[0];
+    radio_button.style.backgroundColor = 'green';
+}
+
+function deleteCurToothStatus(toothPosition) {
+    var radio_button = document.getElementsByClassName(toothPosition)[0];
+    radio_button.style.backgroundColor = 'red';
+}
+
+
+
 // 全部CurTagStatus列表
 function updateTotalTagStatus() {
     tagStrTotal = '';
@@ -173,4 +202,25 @@ function updateTotalTagStatus() {
     }
     var textarea = $('#annotation_total_status').append(tagStrTotal);
     textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
+}
+
+function initCurToothStatus(){
+     var all_radio = document.getElementsByName("tooth_status");
+     var radio_length = all_radio.length;
+     for (var i = 0; i < radio_length; i++) {
+         all_radio[i].style.backgroundColor = 'maroon';
+     }
+}
+
+
+function checkCurToothStatus(){
+     var all_radio = document.getElementsByName("tooth_status");
+     var radio_length = all_radio.length;
+     for (var i = 0; i < radio_length; i++) {
+         if(all_radio[i].style.backgroundColor !== 'green'){
+             return false;
+         }
+     }
+     return true;
+
 }
