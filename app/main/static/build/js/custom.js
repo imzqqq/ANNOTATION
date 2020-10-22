@@ -5,6 +5,7 @@ sampleCount = 0;
 sampleCurrentIndex = 0;
 boxId = 1;
 boxListOfSample = {}; //一张样本图片的所有标注集合(box_id为key)
+toothListOfSample = {};
 //Returns the first element that is a descendant of node that matches selectors.
 // const input = document.querySelector('input');
 const preview = document.querySelector('.preview');
@@ -40,7 +41,12 @@ function updateImageDisplay_test(obj){
 function initPage_test(obj){
     loadSamplePic_test(obj);
     $('#btn_save').click(function() {
+        if(!checkCurToothStatus()){
+            layer.msg('标注未完成！！！');
+            return;
+        }
         initCurTagStatus();
+        initCurToothStatus();
         user = document.getElementsByClassName("avatar");
         user_name =  username[0].alt;
         if (JSON.stringify(boxListOfSample) == '{}') {
