@@ -3,5 +3,10 @@
 
 {% block content %}
   <h3>全部标注数据集 </h3>
-  {{ df.to_html(classes="table table-striped") | safe}}
+  {% if flag %}
+    {{ df.to_html(classes="table table-striped") | safe}}
+  {% else %}
+    <br/><br/><br/>
+    <h1 class="card-title text-center font-weight-bold">还没有任何数据！</h1>
+  {% endif %}
 {% endblock %}

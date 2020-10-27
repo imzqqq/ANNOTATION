@@ -325,7 +325,7 @@ def save_annotation():
         values = tag.split(',', maxsplit=1)
         tags_new += values[0] + ',' + values[1]+'\n'
 
-    today = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    today = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], 'annotation.txt')
     # file name -> group by user name
     name_annotation = user_name + '_' + str(today) + '.txt'

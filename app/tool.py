@@ -324,7 +324,7 @@ def toExcel(path_annotation):
         for gali in global_all_line_item:
             if(drai[0] == gali[0]):
                 shoot_date = gali[1]
-                annotation_date = gali[-1]
+                annotation_date = gali[-1].replace("\n", "").strip()
                 each_patient_score[gali[-4].strip()] = gali[-3].strip()
                 annotation_user = gali[-2].replace("\n", "").strip()
 

@@ -289,12 +289,14 @@ def ann_list_u():
     标注列表（详细）: 将excel展示网页
     '''
     all_ann_lists = Annotation.query.filter_by(user='all user annotation').first()
-    file_name = toExcel(all_ann_lists.file_name)
-    file_path = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], file_name)
-    df = pd.read_excel(file_path).head()
-    # data_html = df.to_html()
-
-    return render_template('admin/ann_list_u.html', df=df)
+    if(all_ann_lists):
+        file_name = toExcel(all_ann_lists.file_name)
+        file_path = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], file_name)
+        df = pd.read_excel(file_path).head()
+        # data_html = df.to_html()
+        return render_template('admin/ann_list_u.html', df=df, flag=True)
+    else:
+        return render_template('admin/ann_list_u.html', flag=False)
 
 
 @admin.route('/return_files/<file_url>', methods=['GET', 'POST'])
@@ -306,7 +308,7 @@ def return_files(file_url):
     print("\n-----excel_name : ", excel_name)
     try:
         # must set param cache_timeout
-        return send_file(os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], excel_name), attachment_filename=excel_name, cache_timeout=5)
+        return send_from_directory(current_app.config['MILAB_ANNOTATION_PATH'], filename=excel_name, as_attachment=True)
     except Exception as e:
         print("\n-----e : ", e)
         return str(e)
