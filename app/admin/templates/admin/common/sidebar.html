@@ -1,20 +1,18 @@
 <nav id="sidebar" class="col-lg-2 d-md-block sidebar">
     <div class="sidebar-sticky">
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="nav-link font-weight-bold active text-center" href="{{url_for('admin.index')}}">
-            面板 
-          </a>
-        </li>
-      </ul>
-
       <h6 class="sidebar-heading text-primary" style="width: 100%; height: 45px;display: block;line-height: 45px;text-align: center;">
         <span>管理</span>
       </h6>
       <ul class="nav flex-column ml-1">
         <li class="nav-item">
           <a class="nav-link font-weight-bold {{'active' if request.path == url_for('admin.ann_list') else ''}} text-center" href="{{url_for('admin.ann_list')}}">
-            标注列表
+            标注数据 (简要)
+          </a>
+      </ul>
+      <ul class="nav flex-column ml-1">
+        <li class="nav-item">
+          <a class="nav-link font-weight-bold {{'active' if request.path == url_for('admin.ann_list_u') else ''}} text-center" href="{{url_for('admin.ann_list_u')}}">
+            标注数据 (详细)
           </a>
       </ul>
       <ul class="nav flex-column ml-1">

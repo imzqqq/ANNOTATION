@@ -1,5 +1,5 @@
 {% extends 'admin/common/base.html' %}
-{% block title %}标注列表{% endblock %}
+{% block title %}标注列表 (简要){% endblock %}
 
 {% block content %}
 <div class="container">
@@ -18,11 +18,13 @@
         {% for list in ann_lists %}
           <tr>
             <th scope="row">{{ loop.index }}</th>
-            <td>{{ list.user}}</td>
-            <td>{{ list.date}}</td>
+            <td>{{ list.user }}</td>
+            <td>{{ list.date }}</td>
             <td>{{ list.size }}</td>
             <td>
+              <button id="download-btn">
                 <a href="{{ url_for('admin.return_files', file_url=list.file_name) }}">下载</a>
+              </button>
             </td>
           </tr>
         {% endfor %}

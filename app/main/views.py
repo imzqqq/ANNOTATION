@@ -326,10 +326,10 @@ def save_annotation():
         tags_new += values[0] + ',' + values[1]+'\n'
 
     today = datetime.date.today()
-    path_annotation = 'annotation/annotation.txt'
-    path_annotation_user = 'annotation/' + user_name + '_' + str(today) + '.txt'
+    path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], 'annotation.txt')
     # file name -> group by user name
     name_annotation = user_name + '_' + str(today) + '.txt'
+    path_annotation_user = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], name_annotation)
     # all in one txt file
     name_annotation_total = 'annotation.txt'
 
@@ -356,9 +356,9 @@ def save_annotation():
 
         # 返回
         filesize = size_format(os.path.getsize(path_annotation_user))
-        a = Annotation.query.filter_by(file_url=path_annotation_user).first()
+        a = Annotation.query.filter_by(txt_file_url=path_annotation_user).first()
         if a is None:
-            ann = Annotation(user=user_name, date=str(today), size=filesize, file_url=path_annotation_user, file_name= name_annotation)
+            ann = Annotation(user=user_name, date=str(today), size=filesize, txt_file_url=path_annotation_user, file_name= name_annotation)
             db.session.add(ann)
         elif a is not None:
             a.size = filesize
@@ -366,10 +366,9 @@ def save_annotation():
 
         #总标注列表
         filesize_total = size_format(os.path.getsize(path_annotation))
-        a_total = Annotation.query.filter_by(file_url=path_annotation).first()
+        a_total = Annotation.query.filter_by(txt_file_url=path_annotation).first()
         if a_total is None:
-            ann = Annotation(user='all user annotation', date='修改于'+str(today), size=filesize_total, file_url= path_annotation,
-                             file_name = name_annotation_total)
+            ann = Annotation(user='all user annotation', date=str(today), size=filesize_total, txt_file_url= path_annotation, file_name = name_annotation_total)
             db.session.add(ann)
         elif a_total is not None:
             a_total.size = filesize_total
@@ -393,7 +392,7 @@ def return_files_tut():
     except Exception as e:
         return str(e)
 
-   
+
 def add_data(obj):
     try:
         db.session.add(obj)

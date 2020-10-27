@@ -17,6 +17,7 @@ from app.tool import get_bing_img_url
 from app.tool import resize_image, toExcel
 import json
 import threading
+import pandas as pd
 
 
 # 创建一个锁
@@ -270,29 +271,44 @@ def settings():
 @admin_required
 def ann_list():
     '''
-    标注列表
+    标注列表（简要）
     '''
     current_user_name = current_user.username
     if(current_user.role == 'super_admin'):
         ann_lists = Annotation.query.order_by(Annotation.user.asc())
     else:
-        ann_lists = Annotation.query.filter_by(user = current_user_name).all()
-    return render_template('admin/ann_list.html',ann_lists = ann_lists)
+        ann_lists = Annotation.query.filter_by(user=current_user_name).all()
+    return render_template('admin/ann_list.html', ann_lists=ann_lists)
+
+
+@admin.route('/ann_list_u', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def ann_list_u():
+    '''
+    标注列表（详细）: 将excel展示网页
+    '''
+    all_ann_lists = Annotation.query.filter_by(user='all user annotation').first()
+    file_name = toExcel(all_ann_lists.file_name)
+    file_path = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], file_name)
+    df = pd.read_excel(file_path).head()
+    # data_html = df.to_html()
+
+    return render_template('admin/ann_list_u.html', df=df)
 
 
 @admin.route('/return_files/<file_url>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def return_files(file_url):
-    path_annotation = ''
     excel_name = toExcel(file_url)
     print("\n-----file_url : ", file_url)
-    print(excel_name)
-    path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], excel_name)
+    print("\n-----excel_name : ", excel_name)
     try:
         # must set param cache_timeout
         return send_file(os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], excel_name), attachment_filename=excel_name, cache_timeout=5)
     except Exception as e:
+        print("\n-----e : ", e)
         return str(e)
 
 
@@ -309,6 +325,7 @@ def cbct_list():
         page, per_page=20, error_out=False)
     return render_template('admin/cbct_list.html',imgs=imgs)
 
+
 @admin.route('/picture-edit', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -319,8 +336,6 @@ def picture_edit():
     pic.name = pic_name
     db.session.commit()
     return render_template('admin/edit_user.html')
-
-
 
 
 def add_data(obj):

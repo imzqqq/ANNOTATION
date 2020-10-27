@@ -13,6 +13,7 @@ import os
 
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
+    __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
     email = db.Column(db.String(64), unique=True, index=True)
@@ -54,6 +55,7 @@ class Picture(db.Model):
     图片
     '''
     __tablename__ = 'picture'
+    __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.now)
@@ -68,6 +70,7 @@ class AccessLog(db.Model):
     请求日志
     '''
     __tablename__ = 'access_log'
+    __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer, primary_key=True)
     ip = db.Column(db.String(20))
     url = db.Column(db.String(120))
@@ -80,6 +83,7 @@ class InvitationCode(db.Model):
     邀请码
     '''
     __tablename__ = 'invitation_code'
+    __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(64), unique=True, nullable=False)
     user = db.Column(db.String(64))
@@ -92,11 +96,12 @@ class Annotation(db.Model):
     标注文件
     '''
     __tablename__ = 'annotation_list'
+    __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer,primary_key=True)
     user = db.Column(db.String(64),nullable=False)
     date = db.Column(db.String(64))
     size = db.Column(db.String(64))
-    file_url = db.Column(db.String(120))
-    file_name = db.Column(db.String(120))
+    txt_file_url = db.Column(db.String(256))
+    file_name = db.Column(db.String(256))
 
 

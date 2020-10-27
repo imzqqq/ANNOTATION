@@ -18,3 +18,5 @@ Flask-SQLAlchemy
 xml2dict
 regex
 datetime
+email_validator
+mysqlclient

@@ -1,0 +1,7 @@
+{% extends 'admin/common/base.html' %}
+{% block title %}标注列表 (详细){% endblock %}
+
+{% block content %}
+  <h3>全部标注数据集 </h3>
+  {{ df.to_html(classes="table table-striped") | safe}}
+{% endblock %}
