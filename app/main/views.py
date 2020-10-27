@@ -214,11 +214,19 @@ def query_pic():
     tmp_url_ = url_path.split("/")
     local_url_path = tmp_url_[-2] + "/" + tmp_url_[-1]
     filesize = size_format(os.path.getsize(local_url_path))
+
+    # 获取图片的分辨率
+    from PIL import Image
+    img_resolution  = list(Image.open(local_url_path).size)  # 宽高
+    # print("\n------------img_resolution: ", img_resolution[0])
+
     res = {
         'code': 1,
         'msg': u'图片上传成功!',
         'url': url_path,
-        'size': filesize
+        'size': filesize,
+        'img_resolution_w':img_resolution[0],
+        'img_resolution_h':img_resolution[1]
     }
     return jsonify(res)
 

@@ -55,6 +55,8 @@
         obj.img_url = img_url;
         obj.img_name = img_name;
         obj.img_size ='';
+        obj.img_resolution_w = '';
+        obj.img_resolution_h = '';
         $.ajax({
             type: "POST",
             dataType: "json",
@@ -63,7 +65,9 @@
             beforeSend: function() {},
             success: function (res) {
                  if (res.code === 1) {
-                     obj.img_size = res.size;
+                        obj.img_size = res.size;
+                        obj.img_resolution_w = res.img_resolution_w;
+                        obj.img_resolution_h = res.img_resolution_h;
                      {#console.log(obj.img_size);#}
                      parent.imagehosting_callback(obj);  //直接callback
                      parent.layer.close(index);

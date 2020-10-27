@@ -31,7 +31,8 @@ function updateImageDisplay_test(obj){
      //通过调用URL.createObjectURL(curFiles[i])来生成图片的一张缩略预览图
      image.src = obj.img_url
      image.alt = obj.img_name
-     para_name.textContent = 'File name:  ' + image.alt + '---------File size:  ' + obj.img_size ;
+     
+     para_name.textContent = '文件名:  ' + image.alt + '---------文件大小:  ' + obj.img_size + '---------分辨率:  ' + '('+obj.img_resolution_w+', '+obj.img_resolution_h+')';
      listItem.appendChild(image);
      listItem.appendChild(para_name);
      list.appendChild(listItem);
