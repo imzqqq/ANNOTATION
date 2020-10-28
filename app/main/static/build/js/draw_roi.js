@@ -1,3 +1,6 @@
+// 全景片分辨率
+var img_resolution_w, img_resolution_h;
+
 $(function(e) {
     e = e || window.event;
     // startX, startY 为鼠标点击时初始坐标
@@ -6,6 +9,9 @@ $(function(e) {
     // 是否拖动，初始为 false
     var dragging = false;
     var draw_obj = $('#img-item');
+
+
+
     // 鼠标按下
     document.onmousedown = function(e) {
         startX = e.pageX;
@@ -19,9 +25,12 @@ $(function(e) {
                 document.getElementById("moving_box").removeAttribute("id");
             }
             e.target.id = "moving_box";
-            // 计算坐标差值
+            // 计算左上角定点坐标   框的左边界x
             diffX = startX - e.target.offsetLeft;
+            //                   上边界的y位置
             diffY = startY - e.target.offsetTop;
+            
+            console.log("e.target.offsetLeft: "+e.target.offsetLeft+"---e.target.offsetTop: "+e.target.offsetTop);
         } else if (e.target.className.indexOf("img-main") != -1) { // 如果鼠标在 样本区域 被按下
             // 在页面创建 box
             var active_box = document.createElement("div");
@@ -127,10 +136,39 @@ $(function(e) {
     function updateLoc(obj) {
         username = document.getElementsByClassName("avatar");
         img = document.getElementById("img-item");
-        x_left = obj.offsetLeft - img.offsetLeft;
-        y_left = obj.offsetTop - img.offsetTop;
-        x_right = x_left + $(obj).width();
-        y_right = y_left + $(obj).height();
+        console.log("div.width: "+img.clientWidth+"---div.height: "+img.clientHeight);
+        /*****************计算缩放因子*****************/
+        var ratio = 1;
+        var ratio_base_on_w = img.clientWidth/img_resolution_w;
+        var ratio_base_on_h = img.clientHeight/img_resolution_h;
+        console.log("img_resolution_w: "+img_resolution_w);
+        console.log("img_resolution_h: "+img_resolution_h);
+        console.log("ratio_base_on_w: "+ratio_base_on_w);
+        // case 1
+        var real_size_1_w = img_resolution_w * ratio_base_on_w;
+        var real_size_1_h = img_resolution_h * ratio_base_on_w;
+        console.log("real_size_1_h: "+real_size_1_h);
+        // case 2
+        var real_size_2_w = img_resolution_w * ratio_base_on_h;
+        var real_size_2_h = img_resolution_h * ratio_base_on_h;
+        console.log("real_size_2_w: "+real_size_2_w);
+        if(real_size_1_h<=img.clientHeight){
+            ratio = ratio_base_on_w;
+            console.log("ratio1: "+ratio);
+        }
+        else if (real_size_2_w<=img.clientWidth){
+            ratio = ratio_base_on_h;
+            console.log("ratio2: "+ratio);
+        }
+        /*********************************************/
+        console.log("ratio: "+ratio);
+        //                               0
+        x_left = (obj.offsetLeft - img.offsetLeft)/ratio;
+        //                             66 不随分辨率变化而改变
+        y_left = (obj.offsetTop - img.offsetTop)/ratio;
+        console.log(img.offsetLeft +", "+ img.offsetTop);
+        x_right = x_left + $(obj).width()/ratio;
+        y_right = y_left + $(obj).height()/ratio;
         var regionLoc = x_left + ',' + y_left; //2个坐标
         $('#cur_loc').html(regionLoc);
         var regionLocBRC = x_right + ',' + y_right;
@@ -160,6 +198,15 @@ $(function(e) {
          updateCurToothStatus(toothPosition);
     }
 });
+
+
+// 在index的imagehosting_callback()中回调
+function get_img_resolution(obj){
+    img_resolution_w = obj.img_resolution_w;
+    img_resolution_h = obj.img_resolution_h;
+    console.log("get_img_resolution: "+img_resolution_w+', '+img_resolution_h);
+}
+
 
 // c初始化当前图片的status列表
 function initCurTagStatus() {

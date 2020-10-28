@@ -320,7 +320,7 @@ def return_files(file_url):
 @admin_required
 def cbct_list():
     '''
-    CBCT列表
+    全景片列表
     '''
     page = request.args.get('page', 1, type=int)
     imgs= Picture.query.order_by(Picture.id.desc()).paginate(
@@ -338,6 +338,16 @@ def picture_edit():
     pic.name = pic_name
     db.session.commit()
     return render_template('admin/edit_user.html')
+
+
+@admin.route('/audit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def audit():
+    '''
+    预留审核接口
+    '''
+    return render_template('admin/audit.html')
 
 
 def add_data(obj):

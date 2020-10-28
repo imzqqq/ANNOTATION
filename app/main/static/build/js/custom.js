@@ -32,7 +32,7 @@ function updateImageDisplay_test(obj){
      image.src = obj.img_url
      image.alt = obj.img_name
      
-     para_name.textContent = '文件名:  ' + image.alt + '---------文件大小:  ' + obj.img_size + '---------分辨率:  ' + '('+obj.img_resolution_w+', '+obj.img_resolution_h+')';
+     para_name.textContent = '文件名:  ' + image.alt + '---------文件大小:  ' + obj.img_size + '---------分辨率:  ' + '(' + obj.img_resolution_w + ', ' + obj.img_resolution_h + ')';
      listItem.appendChild(image);
      listItem.appendChild(para_name);
      list.appendChild(listItem);
@@ -58,7 +58,7 @@ function initPage_test(obj){
         for (key in boxListOfSample) {
             tagStrTotal += boxListOfSample[key] + '\n';
         }
-        saveRegionInfo(tagStrTotal,user_name);
+        saveRegionInfo(tagStrTotal, user_name);
         $('#cur_loc').html('');
         updateTotalTagStatus();
         boxId = 1;

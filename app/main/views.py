@@ -218,7 +218,6 @@ def query_pic():
     # 获取图片的分辨率
     from PIL import Image
     img_resolution  = list(Image.open(local_url_path).size)  # 宽高
-    # print("\n------------img_resolution: ", img_resolution[0])
 
     res = {
         'code': 1,
