@@ -1,18 +1,18 @@
-# Demirjian's评分标注工具
+# Demirjian's Marking Tool
 
-采用python-flask框架开发，基于B/S方式交互，支持多人同时标注。
+Flask framework is adopted for development, B/S based interaction, and multi-marker tagging is supported.
 
-## 特点
-* B/S方式交互
-* 支持多人同时标注（可分配不同标注人员的标注范围，或不同人员标注不同类别）
-* 类别采用选择方式，免去手工输入类别工作
-* 支持拖拽方式修正标注区域
-* 支持键盘方向键切换标注样本
-* 支持多类别多目标标注
+## Feature
+* B/S mode of interaction
+* Support multiple people to mark at the same time(can assign mark scope of different mark person, or different mark category of different mark person)
+* Category selection eliminates manual input of categories
+* Support drag and drop to correct annotation areas
+* Support for multi-category and multi-objective annotations
 
 
 ## 使用方法
-1. 根据`requirements.txt`安装环境依赖
+1. Install environment dependencies according to `requirements.txt`
+
 ```build
 $ python3.8 -m venv env
 $ pip3 install -r requirements.txt
