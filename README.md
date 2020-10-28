@@ -10,7 +10,7 @@ Flask framework is adopted for development, B/S based interaction, and multi-mar
 * Support for multi-category and multi-objective annotations
 
 
-## 使用方法
+## Usage
 1. Install environment dependencies according to `requirements.txt`
 
 ```build
