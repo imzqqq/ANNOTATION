@@ -6,6 +6,7 @@ sampleCurrentIndex = 0;
 boxId = 1;
 boxListOfSample = {}; //一张样本图片的所有标注集合(box_id为key)
 toothListOfSample = {};
+pre_picture = "";
 //Returns the first element that is a descendant of node that matches selectors.
 // const input = document.querySelector('input');
 const preview = document.querySelector('.preview');
@@ -18,7 +19,7 @@ const fileTypes = [
     'image/png'
 ];
 
-function updateImageDisplay_test(obj){
+function updateImageDisplay(obj){
      while (preview.firstChild) {
         preview.removeChild(preview.firstChild);
      }
@@ -36,52 +37,55 @@ function updateImageDisplay_test(obj){
      listItem.appendChild(image);
      listItem.appendChild(para_name);
      list.appendChild(listItem);
-     initPage_test(obj);
+     initPage(obj);
+     initCurTagStatus();
+     initToothStatus();
+
+     //拿到第一个图片
+     if( pre_picture === ""){
+         pre_picture = $('#cur_id').html();
+     }
+
+     //图片变化了就保存
+     updateTotalTagStatus();
+     saveAnnotationTXT('no_save');
+
+     deleteParentBox();
+     mouse_click();          //启用鼠标事件
 }
 
-function initPage_test(obj){
-    loadSamplePic_test(obj);
-    $('#btn_save').click(function() {
-        if(!checkCurToothStatus()){
-            layer.msg('标注未完成！！！');
-            return;
-        }
-        initCurTagStatus();
-        initCurToothStatus();
-        user = document.getElementsByClassName("avatar");
-        user_name =  username[0].alt;
-        if (JSON.stringify(boxListOfSample) == '{}') {
-            layer.msg('请先进行标注!!!');
-            return;
-        }
-        tagStrTotal = '';
-        for (key in boxListOfSample) {
-            tagStrTotal += boxListOfSample[key] + '\n';
-        }
-        saveRegionInfo(tagStrTotal, user_name);
-        $('#cur_loc').html('');
-        updateTotalTagStatus();
-        boxId = 1;
-        boxListOfSample = {};
+function initPage(obj){
+    loadSamplePic(obj);
 
-        var all_labels = document.getElementsByClassName("label");
-        var newArr = [];
-        for (var i = 0; i < all_labels.length; i++) {
-            newArr.push(all_labels[i]);
+
+    $('#btn_save').click(function() {
+        // if(!checkCurToothStatus()){
+        //     layer.msg('标注未完成！！！');
+        //     return;
+        // }
+        if (JSON.stringify(boxListOfSample) == '{}') {
+            //layer.msg('请先进行标注!!!');
+            return;
         }
-        for (var i = 0; i < newArr.length; i++) {
-            document.body.removeChild(newArr[i]);
-        }
+        updateTotalTagStatus();
+        initCurTagStatus(); //更新文本框不更新牙位
+        saveAnnotationTXT('save');
     });
 
     //将标签类型加载到下拉菜单中
     get_labels();
     $('#annotation-type').click(function() {
+        var regionClass = $('#ann input:checked').val();
+        var toothPosition = $('input[name="tooth"]:checked').val();
+        var tooth_label = document.getElementsByName(toothPosition)[0]
+        if(tooth_label.style.background === 'green'){
+            updateRegionClass(regionClass,toothPosition);
+        }
         $(document).focus();
     });
 }
 
-function loadSamplePic_test(obj){
+function loadSamplePic(obj){
     //加载图片
     picNameStr = obj.img_name;
     img_url = obj.img_url;
@@ -144,6 +148,35 @@ function get_labels() {
     });
 }
 
+function saveAnnotationTXT(flag){
+    //监听图片框的变化，没标注就不保存
+    if (JSON.stringify(boxListOfSample) == '{}') {
+            return;
+    }
+    if(flag === 'save'){
+        //标注当前图片 ——> 用于写入外键
+        picNameStr = $('#cur_id').html();
+        pre_picture = $('#cur_id').html();
+    }
+    else{
+        picNameStr = pre_picture
+    }
+    user = document.getElementsByClassName("avatar");
+    user_name =  user[0].alt;
+
+    tagStrTotal =  $('#annotation_total_status').val();
+    for (key in boxListOfSample) {
+        tagStrTotal += boxListOfSample[key] + '\n';
+    }
+    ann_flag = checkAnnFinish();
+    console.log(picNameStr);
+    console.log(ann_flag);
+    saveRegionInfo(tagStrTotal,user_name,picNameStr,ann_flag);
+    $('#cur_loc').html('');
+
+    boxId = 1;
+    boxListOfSample = {};
+}
 
 
 //接受一个File对象作为参数，然后使用Array.prototype.includes()检查fileTypes中是否有值和文件的type属性匹配
@@ -162,12 +195,12 @@ function returnFileSize(number) {
     }
 }
 
-function saveRegionInfo(tagResult, username) {
+function saveRegionInfo(tagResult, username, picNameStr,ann_flag) {
     $.ajax({
         type: "POST",
         dataType: "json",
         url: "/api/annotation/save?" + new Date(),
-        data: { 'tags': tagResult, 'user': username},
+        data: { 'tags': tagResult, 'user': username, 'pic_name' : picNameStr, 'flag' : ann_flag},
         beforeSend: function() {},
         success: function(result) {
             layer.msg(result.message);

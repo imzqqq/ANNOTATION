@@ -22,12 +22,22 @@
     var index = parent.layer.getFrameIndex(window.name);
     //上传文件，写入数据库中
     $("#img-file").change(function () {
-        var formdata = new FormData();
-        formdata.append('file', $("#img-file")[0].files[0]);
+        var fileList = [];
+        var formData = new FormData();
+        for (var i = 0; i < $("#img-file")[0].files.length; i++) {
+                fileList.push($("#img-file")[0].files[i]);
+            }
+
+        {#var file_length = $("#img-file")[0].files;#}
+        console.log(fileList)
+        fileList.forEach(function (file) {
+                formData.append('files', file, file.name);
+            })
+        console.log(formData)
         $.ajax({
             url: "{{url_for('main.upload')}}",
             type: 'post',
-            data: formdata,
+            data: formData,
             cache: false,
             dataType: 'json',
             processData: false,
@@ -102,10 +112,23 @@
 <div class="container mt-1">
     <div class="row">
         {% for img in imgs.items%}
-            <div class="card m-1" style="width: 13rem;">
-                <img src="{{img.url}}" class="card-img-top rounded" style="height: 12rem;" alt="{{img.name}}">
+            <div class="card m-1" style="width: 16rem;">
+                <img src="{{img.url}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
                 <div class="card-body">
-                    <span>{{img.name}}</span>
+                    <span>{{img.name}}</span><br/><br/>
+                    {% for annlist in user_to_pic %}
+                        {% if annlist.picname == img.name %}
+                            <span>标注者：{{annlist.username}}</span><br/>
+                            <span>标注时间：{{annlist.date}}</span><br/>
+                            {% if annlist.flag_finish == True  %}
+                                <span>标注状态：已完成</span><br/>
+                            {% endif %}
+                            {% if annlist.flag_finish == False  %}
+                                <span>标注状态：未完成</span><br/>
+                            {% endif %}
+                            <br/>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         {% endfor %}
@@ -114,7 +137,7 @@
     {{ page_macros.pagination_widget(imgs, request.endpoint) }}
     <div class="m-3" style="height: 3rem;"></div>
     <div class="row fixed-bottom bg-light navbar">
-        <input type="file" hidden id="img-file" accept="image/*"/>
+        <input type="file" hidden id="img-file" multiple accept="image/*"/>
         <img id="selectImg" src="{{ url_for('.static', filename='pictures/upload_img.svg')}}" class="rounded float-left" alt="请选择图片">
         <div>
             <button id="upload-btn" class="btn btn-primary p-2">从本机选择图片</button>

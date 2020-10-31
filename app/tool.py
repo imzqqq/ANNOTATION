@@ -258,49 +258,57 @@ def convert_to_voc2007(file_path='annotation/annotation.txt'):
 
 def toExcel(path_annotation):
     dir_path_annotation = 'annotation/' + path_annotation
+    # 文件名->不带后缀
     path_name = path_annotation.split('.')[0]
     global_all_line = []
     global_all_line_item = []
     all_item_name_without_suffix = []
+
     re_all_item = []
     result_dict = dict()  # 字典
     result_list = []
 
-    #读取标注文件
+    # 读取标注文件
     with open(dir_path_annotation, 'r', encoding='utf-8') as f:
         lines = f.readlines()
         for line in lines:
             global_all_line.append(line)
     # print("\n---\n", global_all_line, "\n---\n")
 
-    #把每一项读取出来
+    # 把每一项读取出来，逗号是分隔符
     for i in global_all_line:
         line_item = i.split(',')
         global_all_line_item.append(line_item)
     # print("\n---\n", global_all_line_item, "\n---\n")
     # ['F张三19910708-20200128.bmp', '2020-01-28', '649', '459', '649', '459', ' 18', ' 1', ' dadsada\n']
 
-    # 获取所有条目对应的文件名，并除去后缀
+    # 获取所有条目对应的文件名（不带后缀），和标注用户
     for each_line_item in global_all_line_item:
-        all_item_name_without_suffix.append(each_line_item[0].split('.')[0])
+        pic_name = []
+        pic_name.append(each_line_item[0].split('.')[0])
+        pic_name.append(each_line_item[-2].replace(" ", "").strip())
+        all_item_name_without_suffix.append(pic_name)
     # print(all_item_name_without_suffix, "\n\n---\n")
 
     # 文件名清洗，获得“姓名、性别、年、月、日”
     for each_item in all_item_name_without_suffix:
-        tmp_all_item = []
-        re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", each_item)
-        re_item_sex = ''.join(re.findall(r'[A-Za-z]', each_item))
-        re_item_number = re.sub("\D", "", each_item)
+        re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", each_item[0])
+        re_item_sex = ''.join(re.findall(r'[A-Za-z]', each_item[0]))
+        re_item_number = re.sub("\D", "", each_item[0])
 
         re_item_year = re_item_number[0:4]
         re_item_month = re_item_number[4:6]
         re_item_day = re_item_number[6:8]
 
-        file_name = each_item + '.bmp'
+        file_name = each_item[0] + '.bmp'
+        # 加入标注用户字段
         tmp_combine = [file_name, re_item_name, re_item_sex,
-                       re_item_year, re_item_month, re_item_day]
+                       re_item_year, re_item_month, re_item_day, each_item[1]]
         re_all_item.append(tmp_combine)
+
     # print(re_all_item, "\n\n---\n")
+    # ['F黄大明20081106.bmp', '黄大明', 'F', '2008', '11', '06', 'admin']
+    # print(len(re_all_item))
 
     # TODO文件名去重，判断是否有多个标注者，若有则加到需要复核的列表中；
     # 先把列表中每个元素转化为tuple，因为list不可哈希但是tuple可哈希
@@ -308,7 +316,9 @@ def toExcel(path_annotation):
     for re_item in re_all_item:
         if re_item not in deduplication_re_all_item:
             deduplication_re_all_item.append(re_item)
+
     # print(deduplication_re_all_item, "\n\n---\n")
+    # print(len(deduplication_re_all_item))
     # [['F张三19910708-20200128.bmp', '张三', 'F', '1991', '07', '08']]
 
     # TODO若同一个文件漏标，则添加到漏标列表中；
@@ -322,7 +332,8 @@ def toExcel(path_annotation):
         annotation_date = ''
         annotation_user = ''
         for gali in global_all_line_item:
-            if(drai[0] == gali[0]):
+            # 注意空格 -> 文件名相等并且标注用户相等
+            if drai[0] == gali[0] and drai[-1] == gali[-2].replace(" ", "").strip():
                 shoot_date = gali[1]
                 annotation_date = gali[-1].replace("\n", "").strip()
                 each_patient_score[gali[-4].strip()] = gali[-3].strip()
@@ -428,9 +439,14 @@ def toExcel(path_annotation):
         each_patient_score['shoot_date'] = shoot_date
         each_patient_score['annotation_user'] = annotation_user
         each_patient_score['annotation_date'] = annotation_date
-        all_patient_score[drai[0]] = each_patient_score
-    # print(each_patient_score)
+        name_index = drai[0] + '*' + drai[-1]
+        all_patient_score[name_index] = each_patient_score
+
     # print(all_patient_score, "\n\n---\n")
+    # print(len(all_patient_score))
+    # {'F黄大明20081106.bmp*admin': {'18': '1', ... ,
+    #                             'review_flag': False, 'shoot_date': '2020-10-31', 'annotation_user': 'admin',
+    #                             'annotation_date': '2020-10-31'},
 
     # 判断是否闰年
     def is_leap(year):
@@ -458,11 +474,16 @@ def toExcel(path_annotation):
             y -= 1
         return y, m, d
 
+    # 计算牙龄  根据shoot_date 和 birth_date
     i = 1
     for aps in all_patient_score.items():
         tmp_aps = dict()
         for drai2 in deduplication_re_all_item:
-            if(aps[0] == drai2[0]):
+
+            if aps[0].split('*')[0] == drai2[0] and aps[0].split('*')[1] == drai2[-1].replace(" ", "").strip():
+                # print(aps)
+                # print("====")
+                # print(drai2)
                 tmp_aps = aps[1]
                 cur_shoot_date_year = tmp_aps["shoot_date"].split('-')[0]
                 cur_shoot_date_month = tmp_aps["shoot_date"].split('-')[1]
@@ -470,11 +491,12 @@ def toExcel(path_annotation):
                 cur_year = drai2[3]
                 cur_month = drai2[4]
                 cur_day = drai2[5]
-                print(cur_day,cur_month,cur_year)
+                # print(cur_day,cur_month,cur_year)
                 # print(cur_shoot_date_day,cur_shoot_date_month,cur_shoot_date_year)
 
                 cur_birth_date = datetime.date(int(cur_year), int(cur_month), int(cur_day))
-                cur_shoot_date = datetime.date(int(cur_shoot_date_year), int(cur_shoot_date_month), int(cur_shoot_date_day))
+                cur_shoot_date = datetime.date(int(cur_shoot_date_year), int(cur_shoot_date_month),
+                                               int(cur_shoot_date_day))
 
                 y, m, d = minus_result(cur_shoot_date, cur_birth_date)
                 tmp_aps["patient_name"] = drai2[1]
@@ -482,15 +504,19 @@ def toExcel(path_annotation):
                 tmp_aps["year_age"] = y
                 tmp_aps["month_age"] = m
                 tmp_aps["day_age"] = d
-                tmp_aps["file_name"] = aps[0]
+                tmp_aps["file_name"] = aps[0].split('*')[0]
                 tmp_aps["id"] = i
                 i = i + 1
+                # print(tmp_aps)
         result_list.append(tmp_aps)
 
-    # print("\n\n---\n",result_list)
+    # print(len(result_list))
+    # for item in result_list:
+    #     print("\n\n---\n", item)
 
     pf = pd.DataFrame(result_list)
-    order = ['id', 'file_name', "patient_name", 'sex', 'year_age', 'month_age', 'day_age', 'shoot_date', 'review_flag', 'annotation_user', 'annotation_date',
+    order = ['id', 'file_name', "patient_name", 'sex', 'year_age', 'month_age', 'day_age', 'shoot_date', 'review_flag',
+             'annotation_user', 'annotation_date',
              '18', '17', '16', '15', '14', '13', '12', '11',
              '21', '22', '23', '24', '25', '26', '27', '28',
              '48', '47', '46', '45', '44', '43', '42', '41',

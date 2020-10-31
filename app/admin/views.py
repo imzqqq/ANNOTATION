@@ -6,7 +6,7 @@ from . import admin
 from app.extensions import db, app_helper
 from .forms import AddAdminForm, LoginForm, AddUserForm, DeleteUserForm, EditUserForm, \
     ChangePasswordForm, AddFolderForm, InvitcodeForm, OnlineToolForm
-from app.models import User, AccessLog, InvitationCode, Picture, Annotation
+from app.models import User, AccessLog, InvitationCode, Picture, Annotation, User_to_Pic
 import os
 import datetime
 from datetime import timedelta
@@ -288,7 +288,12 @@ def ann_list_u():
     '''
     标注列表（详细）: 将excel展示网页
     '''
-    all_ann_lists = Annotation.query.filter_by(user='all user annotation').first()
+    current_user_name = current_user.username
+    if (current_user.role == 'super_admin'):
+        all_ann_lists = Annotation.query.filter_by(user='all user annotation').first()
+    else:
+        all_ann_lists = Annotation.query.filter_by(user=current_user_name).first()
+
     if(all_ann_lists):
         file_name = toExcel(all_ann_lists.file_name)
         file_path = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], file_name)
@@ -325,7 +330,10 @@ def cbct_list():
     page = request.args.get('page', 1, type=int)
     imgs= Picture.query.order_by(Picture.id.desc()).paginate(
         page, per_page=20, error_out=False)
-    return render_template('admin/cbct_list.html',imgs=imgs)
+    # img_annlist = Annotation.query.join(Picture).all()
+    user_to_pic = User_to_Pic.query.all()
+
+    return render_template('admin/cbct_list.html', imgs=imgs, user_to_pic=user_to_pic )
 
 
 @admin.route('/picture-edit', methods=['GET', 'POST'])

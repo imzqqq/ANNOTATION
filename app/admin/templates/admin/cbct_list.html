@@ -41,7 +41,20 @@
                 <div class="card-body">
                     <span id="{{img.id}}" style="font-weight: bold;" title="{{img.name}}">{{img.name}}</span><br/>
                     <button id="rename" onclick="update({{img.id}})">重命名</button><br/>
-                    <span>{{ img.timestamp}}</span>
+                    <span>上传时间：{{ img.timestamp}}</span><br/><br/>
+                    {% for annlist in user_to_pic %}
+                        {% if annlist.picname == img.name %}
+                            <span>标注者：{{annlist.username}}</span><br/>
+                            <span>标注时间：{{annlist.date}}</span><br/>
+                            {% if annlist.flag_finish == True  %}
+                                <span>标注状态：已完成</span><br/>
+                            {% endif %}
+                            {% if annlist.flag_finish == False  %}
+                                <span>标注状态：未完成</span><br/>
+                            {% endif %}
+                            <br/>
+                        {% endif %}
+                    {% endfor %}
 {#                    <span><a href="{{ url_for('admin.picture_edit', pic_name=img.name) }}">修改</a></span>#}
                 </div>
             </div>

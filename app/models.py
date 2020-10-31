@@ -6,6 +6,7 @@ from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from sqlalchemy import ForeignKey
 import hashlib
 import os
 #import markdown
@@ -57,7 +58,7 @@ class Picture(db.Model):
     __tablename__ = 'picture'
     __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String(64))
+    name = db.Column(db.String(64),unique=True)
     timestamp = db.Column(db.DateTime, default=datetime.now)
     url = db.Column(db.String(120))
     url_s = db.Column(db.String(120))
@@ -97,11 +98,21 @@ class Annotation(db.Model):
     '''
     __tablename__ = 'annotation_list'
     __table_args__ = {"mysql_charset" : "utf8"}
-    id = db.Column(db.Integer,primary_key=True)
-    user = db.Column(db.String(64),nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String(64), nullable=False)
     date = db.Column(db.String(64))
     size = db.Column(db.String(64))
     txt_file_url = db.Column(db.String(256))
     file_name = db.Column(db.String(256))
 
-
+class User_to_Pic(db.Model):
+    '''
+    用户标注图片
+    '''
+    __tablename__ = 'user_pic'
+    __table_args__ = {"mysql_charset": "utf8"}
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), ForeignKey(User.username))
+    picname = db.Column(db.String(64), ForeignKey(Picture.name))
+    date = db.Column(db.String(64))
+    flag_finish = db.Column(db.Boolean(), default=False)
