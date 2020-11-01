@@ -15,8 +15,9 @@
 
 .box_label {
     opacity: 1;
-    color: #fff;
-    font-size: 16px;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 900 ;
     z-index: 11;
 }
 

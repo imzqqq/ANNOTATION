@@ -3,7 +3,7 @@ from flask import render_template, redirect, request, current_app, url_for, g,\
      send_from_directory, abort, flash, Flask, make_response, jsonify, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
 from . import main
-from app.models import User, InvitationCode, Picture, Annotation
+from app.models import User, InvitationCode, Picture, Annotation, User_to_Pic
 from .forms import LoginForm, RegistForm, PasswordForm, InviteRegistForm
 from app.extensions import db
 from app.tool import get_bing_img_url
@@ -203,7 +203,10 @@ def image_hosting():
     page = request.args.get('page', 1, type=int)
     imgs = Picture.query.order_by(Picture.id.desc()).paginate(
         page, per_page=20, error_out=False)
-    return render_template('image_hosting.html', imgs=imgs)
+    # 表连接
+    user_to_pic = User_to_Pic.query.all()
+    # img_annlist = Annotation.query.join(Picture).all()
+    return render_template('image_hosting.html', imgs=imgs,user_to_pic=user_to_pic)
 
 
 @main.route('/upload_query', methods=['POST'])
@@ -239,50 +242,65 @@ def get_image(filename):
 @login_required
 def upload():
     """图片上传处理"""
-    file = request.files.get('file')
-    if not allowed_file(file.filename):
-        res = {
-            'code': 0,
-            'msg': '图片格式异常!'
-        }
-        flash("format error!!!")
-    elif not allowed_name(file.filename):
-        res = {
-            'code': 0,
-            'msg': '图片名不合法!'
-        }
-        flash("filename error!!!")
-    else:
-        url_path = ''
-        url_path_s = ''
-        url_path_m = ''
-        upload_type = current_app.config.get('MILAB_UPLOAD_TYPE')
-        ex = os.path.splitext(file.filename)[1]
-        filename = datetime.datetime.now().strftime('%Y%m%d%H%M%S')+ex
-
-        if upload_type is None or upload_type == '' or upload_type == 'local':
-            file.save(os.path.join(current_app.config['MILAB_UPLOAD_PATH'], filename))
-            filename_s = "resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['small'])"
-            filename_m = "resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['medium'])"
-
-            url_path = url_for('main.get_image', filename=filename)
-            url_path_s = url_for('main.get_image', filename=filename_s)
-            url_path_m = url_for('main.get_image', filename=filename_m)
+    files = request.files.getlist('files')
+    for file in files:
+        if not allowed_file(file.filename):
+            res = {
+                'code': 0,
+                'msg': '图片格式异常!'
+            }
+            flash("format error!!!")
+        elif not allowed_name(file.filename):
+            res = {
+                'code': 0,
+                'msg': '图片名不合法!'
+            }
+            flash("filename error!!!")
         else:
-            flash("上传失败!!!")
+            url_path = ''
+            url_path_s = ''
+            url_path_m = ''
+            upload_type = current_app.config.get('MILAB_UPLOAD_TYPE')
+            ex = os.path.splitext(file.filename)[1]
+            ct = time.time()
+            data_head = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            data_secs = (ct - int(ct)) * 1000
+            time_stamp = "%s%05d" % (data_head, data_secs)
+            filename = time_stamp + ex
+            time.sleep(0.001)
 
-        # 返回
-        pic = Picture(name=file.filename if len(file.filename) < 32 else filename, \
-                            url=url_path, url_s=url_path_s, url_m=url_path_m)
-        db.session.add(pic)
-        res = {
-            'code': 1,
-            'msg': u'图片上传成功!',
-            'url': url_path,
-            'url_s': url_path_s,
-            'url_m': url_path_m,
-            'name': filename
-        }
+            if upload_type is None or upload_type == '' or upload_type == 'local':
+                file.save(os.path.join(current_app.config['MILAB_UPLOAD_PATH'], filename))
+                filename_s = "resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['small'])"
+                filename_m = "resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['medium'])"
+
+                url_path = url_for('main.get_image', filename=filename)
+                url_path_s = url_for('main.get_image', filename=filename_s)
+                url_path_m = url_for('main.get_image', filename=filename_m)
+            else:
+                flash("上传失败!!!")
+
+            # 返回   文件名不带空格！
+            pic = Picture(name=file.filename.replace(" ", "").strip() if len(file.filename) < 32 else filename, url=url_path, url_s=url_path_s,
+                          url_m=url_path_m)
+            try:
+                db.session.add(pic)
+                db.session.commit()
+                res = {
+                    'code': 1,
+                    'msg': u'图片上传成功！',
+                    'url': url_path,
+                    'url_s': url_path_s,
+                    'url_m': url_path_m,
+                    'name': filename
+                }
+            except:
+                db.session.rollback()
+                flash("请勿重复上传!")
+                res = {
+                    'code': 0,
+                    'msg': '请勿重复上传！！！'
+                }
     return jsonify(res)
 
 
@@ -324,6 +342,14 @@ def get_sample():
 def save_annotation():
     tags = request.form['tags']
     user_name = request.form['user']
+    pic_name = request.form['pic_name']
+    ann_flag = request.form['flag']
+
+    if (ann_flag == 'false'):
+        flag = False
+    else:
+        flag = True
+
     tags_new = ''
     for tag in tags.split('\n'):
         if tag == '':
@@ -332,9 +358,11 @@ def save_annotation():
         values = tag.split(',', maxsplit=1)
         tags_new += values[0] + ',' + values[1]+'\n'
 
-    today = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    time_today = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], 'annotation.txt')
     # file name -> group by user name
+    # name_annotation = user_name + '_' + str(today) + '.txt'
     name_annotation = user_name + '_' + str(today) + '.txt'
     path_annotation_user = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], name_annotation)
     # all in one txt file
@@ -365,20 +393,30 @@ def save_annotation():
         filesize = size_format(os.path.getsize(path_annotation_user))
         a = Annotation.query.filter_by(txt_file_url=path_annotation_user).first()
         if a is None:
-            ann = Annotation(user=user_name, date=str(today), size=filesize, txt_file_url=path_annotation_user, file_name= name_annotation)
+            ann = Annotation(user=user_name, date=str(time_today), size=filesize, txt_file_url=path_annotation_user,file_name=name_annotation,)
             db.session.add(ann)
         elif a is not None:
             a.size = filesize
             db.session.commit()
 
-        #总标注列表
+        # 总标注列表
         filesize_total = size_format(os.path.getsize(path_annotation))
         a_total = Annotation.query.filter_by(txt_file_url=path_annotation).first()
         if a_total is None:
-            ann = Annotation(user='all user annotation', date=str(today), size=filesize_total, txt_file_url= path_annotation, file_name = name_annotation_total)
+            ann = Annotation(user='all user annotation', date=str(time_today), size=filesize_total, txt_file_url= path_annotation, file_name = name_annotation_total)
             db.session.add(ann)
         elif a_total is not None:
             a_total.size = filesize_total
+            db.session.commit()
+
+        # 用户 -> 图片
+        u_p = User_to_Pic.query.filter_by(username=user_name, picname=pic_name).first()
+        if u_p is None:
+            user_pic = User_to_Pic(username=user_name, picname=pic_name, date=time_today, flag_finish=flag)
+            db.session.add(user_pic)
+        elif u_p is not None:
+            u_p.date = time_today
+            u_p.flag_finish = flag
             db.session.commit()
 
     except Exception as e:
