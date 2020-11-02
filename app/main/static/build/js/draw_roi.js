@@ -160,32 +160,32 @@ function  mouse_click() {
     function updateLoc(obj) {
         username = document.getElementsByClassName("avatar");
         img = document.getElementById("img-item");
-        console.log("div.width: "+img.clientWidth+"---div.height: "+img.clientHeight);
+        //console.log("div.width: "+img.clientWidth+"---div.height: "+img.clientHeight);
         /*****************计算缩放因子*****************/
         var ratio = 1;
         var ratio_base_on_w = img.clientWidth/img_resolution_w;
         var ratio_base_on_h = img.clientHeight/img_resolution_h;
-        console.log("img_resolution_w: "+img_resolution_w);
-        console.log("img_resolution_h: "+img_resolution_h);
-        console.log("ratio_base_on_w: "+ratio_base_on_w);
+        // console.log("img_resolution_w: "+img_resolution_w);
+        // console.log("img_resolution_h: "+img_resolution_h);
+        // console.log("ratio_base_on_w: "+ratio_base_on_w);
         // case 1
         var real_size_1_w = img_resolution_w * ratio_base_on_w;
         var real_size_1_h = img_resolution_h * ratio_base_on_w;
-        console.log("real_size_1_h: "+real_size_1_h);
+        // console.log("real_size_1_h: "+real_size_1_h);
         // case 2
         var real_size_2_w = img_resolution_w * ratio_base_on_h;
         var real_size_2_h = img_resolution_h * ratio_base_on_h;
         // console.log("real_size_2_w: "+real_size_2_w);
         if(real_size_1_h<=img.clientHeight){
             ratio = ratio_base_on_w;
-            console.log("ratio1: "+ratio);
+            // console.log("ratio1: "+ratio);
         }
         else if (real_size_2_w<=img.clientWidth){
             ratio = ratio_base_on_h;
-            console.log("ratio2: "+ratio);
+            // console.log("ratio2: "+ratio);
         }
         /*********************************************/
-        console.log("ratio: "+ratio);
+        // console.log("ratio: "+ratio);
         //                               0
         x_left = (obj.offsetLeft - img.offsetLeft)/ratio;
         //                             66 不随分辨率变化而改变
@@ -259,7 +259,7 @@ function initToothStatus() {
 
 //删除所有box
 function deleteParentBox(){
-    console.log('执行了')
+    // console.log('执行了')
     var all_box = document.getElementsByClassName('parent_box');
     if(all_box !== null){
         var box_length = all_box.length;
@@ -319,7 +319,7 @@ function updateTotalTagStatus() {
     }
     var textarea = $('#annotation_total_status').append(tagStrTotal);
     textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
-    console.log('已更新')
+    // console.log('已更新')
 }
 
 //更新类别
