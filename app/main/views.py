@@ -219,16 +219,23 @@ def query_pic():
     filesize = size_format(os.path.getsize(local_url_path))
 
     # 获取图片的分辨率
-    from PIL import Image
-    img_resolution  = list(Image.open(local_url_path).size)  # 宽高
+    # from PIL import Image
+    # img_resolution = list(Image.open(local_url_path).size)  # 宽高
+
+    import cv2
+    img = cv2.imread(local_url_path)
+
+    sp = img.shape
+    height = sp[0]  # height(rows) of image
+    width = sp[1]  # width(colums) of image
 
     res = {
         'code': 1,
         'msg': u'图片上传成功!',
         'url': url_path,
         'size': filesize,
-        'img_resolution_w':img_resolution[0],
-        'img_resolution_h':img_resolution[1]
+        'img_resolution_w': width,
+        'img_resolution_h': height,
     }
     return jsonify(res)
 
@@ -242,6 +249,7 @@ def get_image(filename):
 @login_required
 def upload():
     """图片上传处理"""
+    res = {}
     files = request.files.getlist('files')
     for file in files:
         if not allowed_file(file.filename):

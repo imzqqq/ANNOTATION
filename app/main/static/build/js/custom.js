@@ -169,8 +169,8 @@ function saveAnnotationTXT(flag){
         tagStrTotal += boxListOfSample[key] + '\n';
     }
     ann_flag = checkAnnFinish();
-    console.log(picNameStr);
-    console.log(ann_flag);
+    // console.log(picNameStr);
+    // console.log(ann_flag);
     saveRegionInfo(tagStrTotal,user_name,picNameStr,ann_flag);
     $('#cur_loc').html('');
 

@@ -29,11 +29,11 @@
             }
 
         {#var file_length = $("#img-file")[0].files;#}
-        console.log(fileList)
+        {#console.log(fileList)#}
         fileList.forEach(function (file) {
                 formData.append('files', file, file.name);
             })
-        console.log(formData)
+        {#console.log(formData)#}
         $.ajax({
             url: "{{url_for('main.upload')}}",
             type: 'post',

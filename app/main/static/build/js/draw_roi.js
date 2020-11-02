@@ -259,7 +259,7 @@ function initToothStatus() {
 
 //删除所有box
 function deleteParentBox(){
-    console.log('执行了')
+    // console.log('执行了')
     var all_box = document.getElementsByClassName('parent_box');
     if(all_box !== null){
         var box_length = all_box.length;
@@ -319,7 +319,7 @@ function updateTotalTagStatus() {
     }
     var textarea = $('#annotation_total_status').append(tagStrTotal);
     textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
-    console.log('已更新')
+    // console.log('已更新')
 }
 
 //更新类别

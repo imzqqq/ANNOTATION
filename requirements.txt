@@ -20,3 +20,4 @@ regex
 datetime
 email_validator
 mysqlclient
+cv2
