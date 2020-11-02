@@ -262,7 +262,7 @@ def toExcel(path_annotation):
     path_name = path_annotation.split('.')[0]
     global_all_line = []
     global_all_line_item = []
-    all_item_name_without_suffix = []
+    all_item_name_with_user = []
 
     re_all_item = []
     result_dict = dict()  # 字典
@@ -285,22 +285,23 @@ def toExcel(path_annotation):
     # 获取所有条目对应的文件名（不带后缀），和标注用户
     for each_line_item in global_all_line_item:
         pic_name = []
-        pic_name.append(each_line_item[0].split('.')[0])
+        pic_name.append(each_line_item[0])
         pic_name.append(each_line_item[-2].replace(" ", "").strip())
-        all_item_name_without_suffix.append(pic_name)
+        all_item_name_with_user.append(pic_name)
     # print(all_item_name_without_suffix, "\n\n---\n")
 
     # 文件名清洗，获得“姓名、性别、年、月、日”
-    for each_item in all_item_name_without_suffix:
-        re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", each_item[0])
-        re_item_sex = ''.join(re.findall(r'[A-Za-z]', each_item[0]))
-        re_item_number = re.sub("\D", "", each_item[0])
+    for each_item in all_item_name_with_user:
+        name_without_suffix = each_item[0].split('.')[0]
+        re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", name_without_suffix)
+        re_item_sex = ''.join(re.findall(r'[A-Za-z]', name_without_suffix))
+        re_item_number = re.sub("\D", "", name_without_suffix)
 
         re_item_year = re_item_number[0:4]
         re_item_month = re_item_number[4:6]
         re_item_day = re_item_number[6:8]
 
-        file_name = each_item[0] + '.bmp'
+        file_name = each_item[0]
         # 加入标注用户字段
         tmp_combine = [file_name, re_item_name, re_item_sex,
                        re_item_year, re_item_month, re_item_day, each_item[1]]
