@@ -21,3 +21,4 @@ datetime
 email_validator
 mysqlclient
 cv2
+pytz

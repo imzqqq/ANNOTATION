@@ -10,6 +10,9 @@ from sqlalchemy import ForeignKey
 import hashlib
 import os
 #import markdown
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 
 class User(UserMixin, db.Model):
@@ -19,8 +22,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, index=True)
     email = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
-    member_since = db.Column(db.DateTime(), default=datetime.now)
-    last_seen = db.Column(db.DateTime(), default=datetime.now)
+    member_since = db.Column(db.DateTime(), default=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',)))
+    last_seen = db.Column(db.DateTime(), default=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',)))
     status = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(64), default=False) # super_admin, normal_admin 
 
@@ -39,7 +42,7 @@ class User(UserMixin, db.Model):
         return self.role
 
     def ping(self):
-        self.last_seen = datetime.now()
+        self.last_seen = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',))
         db.session.add(self)
 
     def __repr__(self):
@@ -59,7 +62,7 @@ class Picture(db.Model):
     __table_args__ = {"mysql_charset" : "utf8"}
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(64),unique=True)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',)))
     url = db.Column(db.String(120))
     url_s = db.Column(db.String(120))
     url_m = db.Column(db.String(120))
@@ -75,7 +78,7 @@ class AccessLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ip = db.Column(db.String(20))
     url = db.Column(db.String(120))
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',)))
     remark = db.Column(db.String(32))
 
 

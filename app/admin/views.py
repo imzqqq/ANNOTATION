@@ -19,6 +19,8 @@ import json
 import threading
 import pandas as pd
 
+os.environ['TZ'] = 'Asia/Shanghai'
+
 
 # 创建一个锁
 mu = threading.Lock()

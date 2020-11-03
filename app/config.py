@@ -3,13 +3,14 @@ import os
 import sys
 import hashlib
 
-basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))\
 
 WIN = sys.platform.startswith('win')
 if WIN:
     prefix = 'sqlite:///'
 else:
     prefix = 'sqlite:////'
+
 
 
 class BaseConfig(object):
