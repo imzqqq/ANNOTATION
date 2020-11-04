@@ -56,9 +56,9 @@
 
     <!-- Sidebar -->
     <div class="bg-light border-right" id="sidebar-wrapper">
-      <div class="sidebar-heading list-group-item active "><a href="{{url_for('main.about')}}" >首页</a></div>
+      <div class="sidebar-heading "><a href="{{url_for('main.about')}}" >首页</a></div>
       <div class="list-group list-group-flush">
-          <a href="{{url_for('main.about_page')}}" class="list-group-item list-group-item-action  ">系统页面</a>
+          <a href="{{url_for('main.about_page')}}" class="list-group-item list-group-item-action  list-group-item active">系统页面</a>
           <a href="{{url_for('main.about_user')}}" class="list-group-item list-group-item-action">用户管理</a>
           <a href="{{url_for('main.about_annotation')}}" class="list-group-item list-group-item-action">标注页面</a>
           <a href="{{url_for('main.about_pic')}}" class="list-group-item list-group-item-action">图片上传与管理</a>
@@ -72,22 +72,19 @@
 
       <div class="container-fluid">
           <div class="page-header">
-            <h1 class="font-weight-bold">Demirjian的标记工具</h1>
+            <h1 class="font-weight-bold">系统页面</h1>
           </div>
-
-          <p style="font-size: 18px">采用Flask框架进行开发，基于B / S的交互，并支持多标记标记。</p>
+          <span>   </span><p style="font-size: 18px">本系统页面分为两大模块，<code>标注界面</code> 以及 <code>管理界面</code></p>
+          <h2 class="h3 font-weight-bold">标注界面</h2>
+           <p style="font-size: 18px">标注界面部署在<a href = "http://taanno.deepstom.machineilab.org/" style="color: #00BBF0; text-decoration:underline;">"http://taanno.deepstom.machineilab.org/" </a>，需要登陆后提供访问 </p>
+          <p style="font-size: 18px">示意图如下： </p>
+          <img src="{{url_for('main.static', filename='images/annotation.png')}}" width="70%">
           <br/><br/>
-          <h2 class="font-weight-bold">特征</h2>
-              <ul>
-                  <li style="font-size: 16px">B / S交互方式</li>
-                  <li style="font-size: 16px">支持多人同时标记（可以分配不同标记人的标记范围，或不同标记人的不同标记类别）</li>
-                  <li style="font-size: 16px">类别选择消除了手动输入类别</li>
-                  <li style="font-size: 16px">支持拖放操作以更正注释区域</li>
-                  <li style="font-size: 16px">支持多类别和多目标注释</li>
-              </ul>
-{#        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>#}
-{#        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>#}
-      </div>#}
+          <h2 class="h3 font-weight-bold">管理界面</h2>
+          <p style="font-size: 18px">管理界面部署在<a href = "http://taanno.deepstom.machineilab.org/admin/" style="color: #00BBF0; text-decoration:underline;">"http://taanno.deepstom.machineilab.org/admin/" </a>，需要登陆后提供访问，并且不对普通用户开放 </p>
+          <p style="font-size: 18px">示意图如下： </p>
+          <img src="{{url_for('main.static', filename='images/admin1.png')}}" >
+      </div>
     </div>
     <!-- /#page-content-wrapper -->
 

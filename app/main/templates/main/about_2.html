@@ -1,0 +1,146 @@
+{% extends 'common/base.html' %}
+{% import "macros/_patination.html" as page_macros %}
+{% block css %}
+  {{ super() }}
+  <link
+    href="{{ url_for('main.static', filename='css/detail.css') }}"
+    rel="stylesheet"
+  />
+  <link
+    href="{{ url_for('main.static', filename='css/monokai.css') }}"
+    rel="stylesheet"
+  />
+  <link
+    href="{{ url_for('main.static', filename='css/base_comment.css') }}"
+    rel="stylesheet"
+  />
+     <link
+    href="{{ url_for('main.static', filename='css/simple-sidebar.css') }}"
+    rel="stylesheet"
+  />
+{% endblock %}
+{% block title %}关于{{ super() }}{% endblock %}
+{% block keywords %} 关于 {% endblock %}
+{% block description %} 关于本网站的介绍 {% endblock %}
+
+{% block content %}
+{#  <div class="card rounded-0 border-0" id="article">#}
+{#    <div class="card-body px-2 px-md-3 pb-0">#}
+{#      <h1 class="card-title text-center font-weight-bold">关于</h1>#}
+{#      <hr />#}
+{#      <div class="text-center f-13">#}
+{#        <span#}
+{#          class="mx-2"#}
+{#          data-toggle="tooltip"#}
+{#          data-placement="bottom"#}
+{#          title=""#}
+{#          data-original-title="最后编辑于2020年10月11日"#}
+{#          >2020年10月11日 00:53</span#}
+{#        >#}
+{#        <span class="mx-2">阅读 999+</span>#}
+{#      </div>#}
+{#      <div class="article-body mt-4 f-17" style="line-height: 1.8">#}
+{#        <p>#}
+{#          <img#}
+{#            alt="  "#}
+{#            src="{{url_for('main.static', filename='img/logo_milab.png')}}"#}
+{#            title="  "#}
+{#          />#}
+{#        </p>#}
+{#        <p>Machine Intelligence Lab</p>#}
+{#      </div>#}
+{#      <div class="tag-cloud my-4"></div>#}
+{#    </div>#}
+{#  </div>#}
+<div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+     <div class="bg-light border-right" id="sidebar-wrapper">
+      <div class="sidebar-heading "><a href="{{url_for('main.about')}}" >首页</a></div>
+      <div class="list-group list-group-flush">
+          <a href="{{url_for('main.about_page')}}" class="list-group-item list-group-item-action  ">系统页面</a>
+          <a href="{{url_for('main.about_user')}}" class="list-group-item list-group-item-action list-group-item active">用户管理</a>
+          <a href="{{url_for('main.about_annotation')}}" class="list-group-item list-group-item-action">标注页面</a>
+          <a href="{{url_for('main.about_pic')}}" class="list-group-item list-group-item-action">图片上传与管理</a>
+          <a href="{{url_for('main.about_list')}}" class="list-group-item list-group-item-action">标注文件管理</a>
+          <a href="#" class="list-group-item list-group-item-action">关于</a>
+      </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+
+      <div class="container-fluid">
+          <div class="page-header">
+            <h1 class="font-weight-bold">用户管理模块</h1>
+          </div>
+          <span>   </span><p style="font-size: 18px">本系统提供了多用户管理机制，对用户角色进行了划分并规定了相应的权限，有以下三种角色</p>
+          <ul>
+                  <li style="font-size: 16px">超级管理员</li>
+                  <li style="font-size: 16px">一般管理员</li>
+                  <li style="font-size: 16px">普通用户</li>
+          </ul>
+          <br/><br/>
+          <h2 class="h3 font-weight-bold">所有用户</h2>
+            <p style="font-size: 17px">所有用户都可进行以下操作</p>
+             <ul>
+                  <li style="font-size: 16px">标注</li>
+                  <li style="font-size: 16px">图片上传</li>
+                  <li style="font-size: 16px">查看图片标注记录</li>
+                 <li style="font-size: 16px">保存标注信息</li>
+              </ul>
+          <br/><br/>
+          <h2 class="h3 font-weight-bold">一般管理员</h2>
+           <p style="font-size: 17px">如果您是一般管理员，附加有以下操作</p>
+           <div class="form-inline">
+           <ul>
+               <li style="font-size: 16px">查看本用户的标注文件记录</li>
+               <li style="font-size: 16px">查看并下载本用户标注信息的excel表</li>
+               <p style="font-size: 17px">详细见<code>标注文件管理</code></p>
+               <li style="font-size: 16px">查看图片的上传时间、标注记录</li>
+               <li style="font-size: 16px">图片重命名</li>
+                <p style="font-size: 17px">详细见<code>图片上传与管理</code></p>
+           </ul>
+           <img src="{{url_for('main.static', filename='images/user2.png')}}" width="70%">
+           </div>
+        <br/><br/>
+          <h2 class="h3 font-weight-bold">超级管理员</h2>
+          <p style="font-size: 18px">如果您是超级管理员，在标注方面，附加有以下功能</p>
+
+            <ul>
+               <li style="font-size: 16px">查看所有用户的标注文件记录</li>
+               <li style="font-size: 16px">查看并下载所有用户标注信息的excel表</li>
+           </ul>
+
+
+          <p style="font-size: 18px">如果您是超级管理员，在用户方面，附加有以下功能</p>
+            <ul>
+               <li style="font-size: 16px">添加、查看用户</li>
+               <li style="font-size: 16px">删除、修改用户</li>
+                <li style="font-size: 16px">管理邀请码</li>
+           </ul>
+          <img src="{{url_for('main.static', filename='images/user.png')}}" width="70%">
+           <br/><br/>
+
+            <h2 class="h3 font-weight-bold">用户注册</h2>
+          <p style="font-size: 18px">用户注册可分为两种方式，<code>邀请码注册</code> 以及 <code>超级管理员添加（见超级管理员权限）</code></p>
+           <br/>
+          <p style="font-size: 18px">邀请码注册需要向超级管理员申请，是必填项目。</p>
+          <p style="font-size: 18px">超级管理员可以在管理界面生成一定数量的邀请码，邀请码只能用一次</p>
+           <div class="form-inline">
+               <img src="{{url_for('main.static', filename='images/zhuece.png')}}" height="50%">
+           <img src="{{url_for('main.static', filename='images/yaoqing.png')}}" width="60%">
+           </div>
+
+
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
