@@ -158,6 +158,25 @@ def logout():
 def about():
     return render_template('about.html')
 
+@main.route('/about_page/', methods=['GET', 'POST'])
+def about_page():
+    return render_template('about_1.html')
+
+@main.route('/about_user/', methods=['GET', 'POST'])
+def about_user():
+    return render_template('about_2.html')
+
+@main.route('/about_annotation/', methods=['GET', 'POST'])
+def about_annotation():
+    return render_template('about_3.html')
+
+@main.route('/about_pic/', methods=['GET', 'POST'])
+def about_pic():
+    return render_template('about_4.html')
+
+@main.route('/about_list/', methods=['GET', 'POST'])
+def about_list():
+    return render_template('about_5.html')
 
 @main.route('/profile/', methods=['GET'])
 def profile():

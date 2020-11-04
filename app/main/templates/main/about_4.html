@@ -56,12 +56,12 @@
 
     <!-- Sidebar -->
     <div class="bg-light border-right" id="sidebar-wrapper">
-      <div class="sidebar-heading list-group-item active "><a href="{{url_for('main.about')}}" >首页</a></div>
+      <div class="sidebar-heading "><a href="{{url_for('main.about')}}" >首页</a></div>
       <div class="list-group list-group-flush">
           <a href="{{url_for('main.about_page')}}" class="list-group-item list-group-item-action  ">系统页面</a>
           <a href="{{url_for('main.about_user')}}" class="list-group-item list-group-item-action">用户管理</a>
           <a href="{{url_for('main.about_annotation')}}" class="list-group-item list-group-item-action">标注页面</a>
-          <a href="{{url_for('main.about_pic')}}" class="list-group-item list-group-item-action">图片上传与管理</a>
+          <a href="{{url_for('main.about_pic')}}" class="list-group-item list-group-item-action list-group-item active">图片上传与管理</a>
           <a href="{{url_for('main.about_list')}}" class="list-group-item list-group-item-action">标注文件管理</a>
           <a href="#" class="list-group-item list-group-item-action">关于</a>
       </div>
@@ -70,28 +70,27 @@
 
     <!-- Page Content -->
 
-      <div class="container-fluid">
+     <div class="container-fluid">
           <div class="page-header">
-            <h1 class="font-weight-bold">Demirjian的标记工具</h1>
+            <h1 class="font-weight-bold">图片上传与管理</h1>
           </div>
-
-          <p style="font-size: 18px">采用Flask框架进行开发，基于B / S的交互，并支持多标记标记。</p>
           <br/><br/>
-          <h2 class="font-weight-bold">特征</h2>
-              <ul>
-                  <li style="font-size: 16px">B / S交互方式</li>
-                  <li style="font-size: 16px">支持多人同时标记（可以分配不同标记人的标记范围，或不同标记人的不同标记类别）</li>
-                  <li style="font-size: 16px">类别选择消除了手动输入类别</li>
-                  <li style="font-size: 16px">支持拖放操作以更正注释区域</li>
-                  <li style="font-size: 16px">支持多类别和多目标注释</li>
-              </ul>
-{#        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>#}
-{#        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>#}
-      </div>#}
-    </div>
+         <h2 class="h3 font-weight-bold">图片上传</h2>
+         <p style="font-size: 18px">图片在标注页面进行上传，并且所有用户共享图片</p>
+          <br/><br/>
+         <h2 class="h3 font-weight-bold">图片管理</h2>
+            <p style="font-size: 18px">管理员可以进行图片的管理，包括查看与重命名</p>
+             <p style="font-size: 18px">进入管理界面，点击全景片列表即可查看图片的<code>上传时间</code>，<code>图片缩略图</code>，以及<code>图片的标注记录</code></p>
+            <p style="font-size: 18px">示意图如下： </p>
+            <img src="{{url_for('main.static', filename='images/pic.png')}}" width="80%">
+              <br/><br/>
+          <p style="font-size: 18px">重命名点击“重命名”按钮即可在文本框中更改。<code>注意重命名时仍要遵守上传图片时对文件名的要求</code></p>
+        <p style="font-size: 18px">示意图如下： </p>
+        <img src="{{url_for('main.static', filename='images/rename.png')}}" >
+        <br/><br/>
+      </div>
     <!-- /#page-content-wrapper -->
-
-  </div>
+ </div>
   <!-- /#wrapper -->
 
   <!-- Bootstrap core JavaScript -->

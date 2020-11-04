@@ -1,0 +1,124 @@
+{% extends 'common/base.html' %}
+{% import "macros/_patination.html" as page_macros %}
+{% block css %}
+  {{ super() }}
+  <link
+    href="{{ url_for('main.static', filename='css/detail.css') }}"
+    rel="stylesheet"
+  />
+  <link
+    href="{{ url_for('main.static', filename='css/monokai.css') }}"
+    rel="stylesheet"
+  />
+  <link
+    href="{{ url_for('main.static', filename='css/base_comment.css') }}"
+    rel="stylesheet"
+  />
+     <link
+    href="{{ url_for('main.static', filename='css/simple-sidebar.css') }}"
+    rel="stylesheet"
+  />
+{% endblock %}
+{% block title %}关于{{ super() }}{% endblock %}
+{% block keywords %} 关于 {% endblock %}
+{% block description %} 关于本网站的介绍 {% endblock %}
+
+{% block content %}
+{#  <div class="card rounded-0 border-0" id="article">#}
+{#    <div class="card-body px-2 px-md-3 pb-0">#}
+{#      <h1 class="card-title text-center font-weight-bold">关于</h1>#}
+{#      <hr />#}
+{#      <div class="text-center f-13">#}
+{#        <span#}
+{#          class="mx-2"#}
+{#          data-toggle="tooltip"#}
+{#          data-placement="bottom"#}
+{#          title=""#}
+{#          data-original-title="最后编辑于2020年10月11日"#}
+{#          >2020年10月11日 00:53</span#}
+{#        >#}
+{#        <span class="mx-2">阅读 999+</span>#}
+{#      </div>#}
+{#      <div class="article-body mt-4 f-17" style="line-height: 1.8">#}
+{#        <p>#}
+{#          <img#}
+{#            alt="  "#}
+{#            src="{{url_for('main.static', filename='img/logo_milab.png')}}"#}
+{#            title="  "#}
+{#          />#}
+{#        </p>#}
+{#        <p>Machine Intelligence Lab</p>#}
+{#      </div>#}
+{#      <div class="tag-cloud my-4"></div>#}
+{#    </div>#}
+{#  </div>#}
+<div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+     <div class="bg-light border-right" id="sidebar-wrapper">
+          <div class="sidebar-heading "><a href="{{url_for('main.about')}}" >首页</a></div>
+          <div class="list-group list-group-flush">
+              <a href="{{url_for('main.about_page')}}" class="list-group-item list-group-item-action  ">系统页面</a>
+              <a href="{{url_for('main.about_user')}}" class="list-group-item list-group-item-action">用户管理</a>
+              <a href="{{url_for('main.about_annotation')}}" class="list-group-item list-group-item-action list-group-item active">标注页面</a>
+              <a href="{{url_for('main.about_pic')}}" class="list-group-item list-group-item-action">图片上传与管理</a>
+              <a href="{{url_for('main.about_list')}}" class="list-group-item list-group-item-action">标注文件管理</a>
+              <a href="#" class="list-group-item list-group-item-action">关于</a>
+          </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+
+      <div class="container-fluid">
+          <div class="page-header">
+            <h1 class="font-weight-bold">标注界面</h1>
+          </div>
+          <p style="font-size: 18px">示意图如下： </p>
+          <img src="{{url_for('main.static', filename='images/annotation.png')}}" width="70%">
+          <br/><br/>
+          <p style="font-size: 18px">左侧用于加载图片，接下来对右侧功能区进行介绍</p>
+           <h2 class="h3 font-weight-bold">添加全景片</h2>
+            <ul>
+               <li style="font-size: 16px">点击添加后跳转至图床，为从本地上传的图片提供暂存</li>
+               <li style="font-size: 16px">可多张上传</li>
+               <li style="font-size: 16px">上传时有文件名的检查，必须是F/M xxx 合法日期.bmp/jpg/png/jpeg的形式.</li>
+                <li style="font-size: 16px">不可重复上传</li>
+                <li style="font-size: 16px">点击需要标注的图片，点击<code>确认添加</code>，页面左边即加载，并在右边显示图片信息</li>
+           </ul>
+          <img src="{{url_for('main.static', filename='images/image.png')}}" width="70%">
+          <br/><br/>
+
+
+          <h2 class="h3 font-weight-bold">进行标注</h2>
+           <ul>
+               <li style="font-size: 16px">上传图片后方可标注，否则无响应</li>
+               <li style="font-size: 16px">拍片日期可从文件名中读取，若文件名中没有则默认为<code>今天</code>，需要手动设置</li>
+               <img src="{{url_for('main.static', filename='images/date.png')}}" width="50%">
+               <li style="font-size: 16px">选中标注的牙位，以及评分，在图片上<code>单击左键</code>并拖动画框，完成后释放，即可完成一个牙位的标注<br/>标注后对应牙位复选框背景变为 <code class="text-success font-weight-bold">绿色</code><br/>同一牙位不可标注两次</li>
+               <br/><li style="font-size: 16px">支持<code>鼠标右键</code>删除所选框</li>
+               <li style="font-size: 16px">支持<code>点击移动</code>目标框，移动时对应牙位单选框变为<code class="text-warning font-weight-bold">黄色</code></li>
+                 <img src="{{url_for('main.static', filename='images/image1.png')}}" width="70%">
+               <li style="font-size: 16px">支持更改已经标注的牙位的牙评分<br/>1、选中已标注的牙位，2、选中要更改的类型，即可弹出修改成功的提示信息</li>
+           </ul>
+          <br/><br/>
+             <h2 class="h3 font-weight-bold">保存</h2>
+           <ul>
+               <li style="font-size: 16px">文件分用户、分日期以追加的模式进行保存</li>
+               <li style="font-size: 16px">标注完成/未完成均可保存</li>
+               <li style="font-size: 16px">保存的内容可以在左下的文本框中看到</li>
+               <li style="font-size: 16px">若更新图片但未保存上一次的标注内容，加载完图片后自动保存</li>
+               <li style="font-size: 16px">可以在图床看到所有用户的标注记录</li>
+           </ul>
+
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

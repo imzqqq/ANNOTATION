@@ -56,13 +56,13 @@
 
     <!-- Sidebar -->
     <div class="bg-light border-right" id="sidebar-wrapper">
-      <div class="sidebar-heading list-group-item active "><a href="{{url_for('main.about')}}" >首页</a></div>
+      <div class="sidebar-heading "><a href="{{url_for('main.about')}}" >首页</a></div>
       <div class="list-group list-group-flush">
           <a href="{{url_for('main.about_page')}}" class="list-group-item list-group-item-action  ">系统页面</a>
           <a href="{{url_for('main.about_user')}}" class="list-group-item list-group-item-action">用户管理</a>
           <a href="{{url_for('main.about_annotation')}}" class="list-group-item list-group-item-action">标注页面</a>
           <a href="{{url_for('main.about_pic')}}" class="list-group-item list-group-item-action">图片上传与管理</a>
-          <a href="{{url_for('main.about_list')}}" class="list-group-item list-group-item-action">标注文件管理</a>
+          <a href="{{url_for('main.about_list')}}" class="list-group-item list-group-item-action list-group-item active" >标注文件管理</a>
           <a href="#" class="list-group-item list-group-item-action">关于</a>
       </div>
     </div>
@@ -72,22 +72,25 @@
 
       <div class="container-fluid">
           <div class="page-header">
-            <h1 class="font-weight-bold">Demirjian的标记工具</h1>
+             <h1 class="font-weight-bold">标注文件管理</h1>
           </div>
-
-          <p style="font-size: 18px">采用Flask框架进行开发，基于B / S的交互，并支持多标记标记。</p>
-          <br/><br/>
-          <h2 class="font-weight-bold">特征</h2>
-              <ul>
-                  <li style="font-size: 16px">B / S交互方式</li>
-                  <li style="font-size: 16px">支持多人同时标记（可以分配不同标记人的标记范围，或不同标记人的不同标记类别）</li>
-                  <li style="font-size: 16px">类别选择消除了手动输入类别</li>
-                  <li style="font-size: 16px">支持拖放操作以更正注释区域</li>
-                  <li style="font-size: 16px">支持多类别和多目标注释</li>
-              </ul>
-{#        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>#}
-{#        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>#}
-      </div>#}
+         <br/><br/>
+         <h2 class="h3 font-weight-bold">标注文件的查看与下载</h2>
+            <p style="font-size: 18px">管理员可以进行标注文件的查看与下载</p>
+            <p style="font-size: 18px">进入管理界面，点击<code>标注数据（简要）</code>即可查看标注文件的标注用户，标注日期，以及文件大小</p>
+            <p style="font-size: 18px">示意图如下： </p>
+            <img src="{{url_for('main.static', filename='images/ann.png')}}" width="80%">
+             <p style="font-size: 18px"><code>另外：</code>超级管理员可以查看所有的用户的标注信息，并且系统整合了所有用户的标注信息，并提供了下载按钮，对应上图中的<code>all user annotation</code> </p>
+              <p style="font-size: 18px">选择需要下载的文件，即可下载标注文的excel</p>
+              <br/><br/>
+              <p style="font-size: 18px">进入管理界面，点击<code>标注数据（详细）</code>即可预览标注文件的excel文件</p>
+            <p style="font-size: 18px">超级管理员可以直接预览<code>all user annotation</code>对应的excel</p>
+            <img src="{{url_for('main.static', filename='images/excel.png')}}" >
+             <p style="font-size: 18px">一般管理员可以预览当前用户最新标注文件的excel形式</p>
+          <p style="font-size: 18px">excel表中额外根据出生日期和拍片日期计算出了牙龄<code>year_age</code> && <code>	month_age</code> && <code>day_age</code></p>
+          <p style="font-size: 18px">并且对牙位和牙评分以表格的形式呈现，未标注即为NAN</p>
+            <br/><br/>
+      </div>
     </div>
     <!-- /#page-content-wrapper -->
 
