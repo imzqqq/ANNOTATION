@@ -97,7 +97,9 @@
                <img src="{{url_for('main.static', filename='images/date.png')}}" width="50%">
                <li style="font-size: 16px">选中标注的牙位，以及评分，在图片上<code>单击左键</code>并拖动画框，完成后释放，即可完成一个牙位的标注<br/>标注后对应牙位复选框背景变为 <code class="text-success font-weight-bold">绿色</code><br/>同一牙位不可标注两次</li>
                <br/><li style="font-size: 16px">支持<code>鼠标右键</code>删除所选框</li>
-               <li style="font-size: 16px">支持<code>点击移动</code>目标框，移动时对应牙位单选框变为<code class="text-warning font-weight-bold">黄色</code></li>
+               <li style="font-size: 16px">支持<code>点击移动</code>目标框，移动时对应牙位单选框变为<code class="text-warning font-weight-bold">黄色</code><br/>
+               允许多标注框重合，当要移动标注框时，1、选中已标注的牙位，2、拖动对应牙位的标注框，否则无法拖动</li>
+
                  <img src="{{url_for('main.static', filename='images/image1.png')}}" width="70%">
                <li style="font-size: 16px">支持更改已经标注的牙位的牙评分<br/>1、选中已标注的牙位，2、选中要更改的类型，即可弹出修改成功的提示信息</li>
            </ul>

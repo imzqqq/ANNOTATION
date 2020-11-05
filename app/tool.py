@@ -475,6 +475,14 @@ def toExcel(path_annotation):
             y -= 1
         return y, m, d
 
+    def compute_year_age(y, m, d):
+        day_to_month = format(d / 30, '.4f')
+        total_month = int(m) + float(day_to_month)
+        month_to_year = format(total_month / 12, '.4f')
+        year_age = int(y) + float(month_to_year)
+        return year_age
+
+
     # 计算牙龄  根据shoot_date 和 birth_date
     i = 1
     for aps in all_patient_score.items():
@@ -500,11 +508,13 @@ def toExcel(path_annotation):
                                                int(cur_shoot_date_day))
 
                 y, m, d = minus_result(cur_shoot_date, cur_birth_date)
+                age_str = str(y) + 'years-' + str(m) + 'months-' + str(d) + 'days'
+                age = compute_year_age(y, m, d)
                 tmp_aps["patient_name"] = drai2[1]
                 tmp_aps["sex"] = drai2[2]
-                tmp_aps["year_age"] = y
-                tmp_aps["month_age"] = m
-                tmp_aps["day_age"] = d
+                tmp_aps["detail_age"] = age_str
+                tmp_aps["format_age"] = age
+                # tmp_aps["day_age"] = d
                 tmp_aps["file_name"] = aps[0].split('*')[0]
                 tmp_aps["id"] = i
                 i = i + 1
@@ -516,7 +526,7 @@ def toExcel(path_annotation):
     #     print("\n\n---\n", item)
 
     pf = pd.DataFrame(result_list)
-    order = ['id', 'file_name', "patient_name", 'sex', 'year_age', 'month_age', 'day_age', 'shoot_date', 'review_flag',
+    order = ['id', 'file_name', "patient_name", 'sex', 'detail_age', 'format_age', 'shoot_date', 'review_flag',
              'annotation_user', 'annotation_date',
              '18', '17', '16', '15', '14', '13', '12', '11',
              '21', '22', '23', '24', '25', '26', '27', '28',
