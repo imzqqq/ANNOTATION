@@ -88,6 +88,7 @@
             <img src="{{url_for('main.static', filename='images/excel.png')}}" >
              <p style="font-size: 18px">一般管理员可以预览当前用户最新标注文件的excel形式</p>
           <p style="font-size: 18px">excel表中额外根据出生日期和拍片日期计算出了牙龄<code>year_age</code> && <code>	month_age</code> && <code>day_age</code></p>
+          <p style="font-size: 18px">并且按照<code class="font-weight-bold">year_age + (month_age + day_age / 30) / 12 </code>的计算公式进行规范化。结果保留4位小数</p>
           <p style="font-size: 18px">并且对牙位和牙评分以表格的形式呈现，未标注即为NAN</p>
             <br/><br/>
       </div>

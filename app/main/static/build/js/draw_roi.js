@@ -9,6 +9,7 @@ function  mouse_click() {
     var startX, startY, diffX, diffY;
     // 是否拖动，初始为 false
     var dragging = false;
+    var rightclick = false;
     // var draw_obj = $('#img-item');
     // 鼠标按下
     document.onmousedown = function(e) {
@@ -16,8 +17,11 @@ function  mouse_click() {
         startY = e.pageY;
         // 如果鼠标在 box 上被按下
         if (e.target.className.match(/box/)) {
-            // 允许拖动
-            dragging = true;
+            var box_id = $(e.target).attr('box_id');
+            cur_tooth = toothListOfSample[box_id]
+
+            //如果当前的boxid对应的牙位是选中的，就允许拖动
+            dragging = $('input[name="tooth"]:checked').val() === cur_tooth;
             // 设置当前 box 的 id 为 moving_box
             if (document.getElementById("moving_box") !== null) {
                 document.getElementById("moving_box").removeAttribute("id");
@@ -30,7 +34,9 @@ function  mouse_click() {
             
             //console.log("e.target.offsetLeft: "+e.target.offsetLeft+"---e.target.offsetTop: "+e.target.offsetTop);
         }
-        else if (e.target.className.indexOf("img-main") != -1) { // 如果鼠标在 样本区域 被按下
+
+        // 建立box有两种情况，1、如果鼠标在 样本区域 被按下  2、不允许拖动，不是右键、点击的是box
+        if(e.target.className.indexOf("img-main") != -1 || (dragging === false && e.target.className.match(/box/) && e.button=== 0)) {
             // 在页面创建 box
             // parent_box
             var active_box_total = document.createElement("div");
