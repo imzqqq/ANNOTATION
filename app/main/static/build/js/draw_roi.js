@@ -123,7 +123,7 @@ function  mouse_click() {
     document.onmouseup = function(e) {
          // 禁止拖动
         dragging = false;
-        if (document.getElementById("active_box") !== null) {
+        if (document.getElementById("active_box") !== null && e.target.className.indexOf("img-main") != -1) {
             var ab = document.getElementById("active_box");
             box_id = ab.getAttribute('box_id')
             ab.removeAttribute("id");
@@ -151,7 +151,7 @@ function  mouse_click() {
             updateToothRadio()
 
         }
-        else if (document.getElementById("moving_box") !== null) {
+        else if (document.getElementById("moving_box") !== null && e.target.className.indexOf("img-main") != -1) {
             var mb = document.getElementById("moving_box");
             if($(mb).width()=== 0 || $(ab).height() === 0) return ;
             updateLoc(mb);
@@ -164,6 +164,8 @@ function  mouse_click() {
     };
 
     function updateLoc(obj) {
+        // console.log('执行了')
+        // console.log(toothListOfSample)
         username = document.getElementsByClassName("avatar");
         img = document.getElementById("img-item");
         //console.log("div.width: "+img.clientWidth+"---div.height: "+img.clientHeight);
@@ -212,6 +214,7 @@ function  mouse_click() {
         // var toothPosition = $('input[name="tooth"]:checked').val();
         //从box->tooth列表中读
         var toothPosition = toothListOfSample[box_id];
+        // console.log(toothPosition)
         //标注日期
         var time = new Date();
         day = ("0" + time.getDate()).slice(-2);

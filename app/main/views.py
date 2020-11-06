@@ -1,4 +1,4 @@
-#-*-coding:utf-8-*-
+# -*-coding:utf-8-*-
 from flask import render_template, redirect, request, current_app, url_for, g,\
      send_from_directory, abort, flash, Flask, make_response, jsonify, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
@@ -24,6 +24,9 @@ import app.config as sys_config
 import app.tool as tool
 from app.tool import toExcel
 from datetime import date
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 import re
 from flask_bootstrap import Bootstrap
 
@@ -127,7 +130,7 @@ def register():
     form = RegistForm(prefix='register')
     if is_use_invite_code:
         form = InviteRegistForm(prefix='register')
-    if form.validate_on_submit(): 
+    if form.validate_on_submit():
         u = User(username=form.username.data.strip(),
                 email=form.email.data.strip(),
                 password=form.password.data.strip(),
@@ -138,7 +141,6 @@ def register():
             if ic :
                 ic.user = u.username
                 ic.state = False
-        
         db.session.commit()
         login_user(user=u)
         flash({'success':'欢迎{}注册成功！'.format(u.username)})
@@ -290,7 +292,7 @@ def upload():
             upload_type = current_app.config.get('MILAB_UPLOAD_TYPE')
             ex = os.path.splitext(file.filename)[1]
             ct = time.time()
-            data_head = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            data_head = datetime.now().strftime('%Y%m%d%H%M%S')
             data_secs = (ct - int(ct)) * 1000
             time_stamp = "%s%05d" % (data_head, data_secs)
             filename = time_stamp + ex
@@ -385,8 +387,10 @@ def save_annotation():
         values = tag.split(',', maxsplit=1)
         tags_new += values[0] + ',' + values[1]+'\n'
 
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    time_today = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8), name='Asia/Shanghai', )).strftime(
+        "%Y-%m-%d")
+    time_today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8), name='Asia/Shanghai', )).strftime(
+        "%Y-%m-%d %H:%M:%S")
     path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], 'annotation.txt')
     # file name -> group by user name
     # name_annotation = user_name + '_' + str(today) + '.txt'
@@ -423,6 +427,7 @@ def save_annotation():
             ann = Annotation(user=user_name, date=str(time_today), size=filesize, txt_file_url=path_annotation_user,file_name=name_annotation,)
             db.session.add(ann)
         elif a is not None:
+            a.date = str(time_today)
             a.size = filesize
             db.session.commit()
 
@@ -434,6 +439,7 @@ def save_annotation():
             db.session.add(ann)
         elif a_total is not None:
             a_total.size = filesize_total
+            a_total.date = str(time_today)
             db.session.commit()
 
         # 用户 -> 图片
