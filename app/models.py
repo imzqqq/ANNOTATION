@@ -25,7 +25,7 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',)))
     last_seen = db.Column(db.DateTime(), default=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8),name='Asia/Shanghai',)))
     status = db.Column(db.Boolean, default=False)
-    role = db.Column(db.String(64), default=False) # super_admin, normal_admin 
+    role = db.Column(db.String(64), default=False) # super_admin, normal_admin
 
     @property
     def password(self):
