@@ -47,19 +47,18 @@
     <body>
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-7 img-main" id="img-item">
+                <div class="col-1"  id="file-open">
+                    <button id="thumbnail-add_new-btn" type="button" class="btn-dark">添加新全景片</button>
                 </div>
-                <div class="col-md-5" id="file-open">
-                    <form action="" method="POST" enctype="multipart/form-data">
-                        <div>
-                            <div class="mt-2">
-                                <button id="thumbnail-add_new-btn" type="button" class="btn btn-outline-secondary btn-sm">添加新全景片</button>
-                            </div>
-                             <div class="preview">
-                                <p>&nbsp;No files currently selected</p>
-                            </div>
-                        </div>
-	                </form>
+                <div class="col-10 img-main" id="img-item"></div>
+            </div>
+
+            <div>
+                <br/>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
                     <form role="form">
                         <div class="form-group">
                             <span><b>牙位</b></span>
@@ -162,6 +161,9 @@
                                 <input type="radio" value="38" name="tooth">38
                             </label>
                         </div>
+                        <div class="preview">
+                            <p>&nbsp;No files currently selected</p>
+                        </div>
                     </form>
                     <div>
                         <br/>
@@ -170,6 +172,8 @@
                     <div>
                         <br/>
                     </div>
+                </div>
+                <div class="col-md-6">
                     <form id="annotation-type">
                         <b>标注类型</b>
                     </form>
@@ -193,6 +197,8 @@
                     </div>
                 </div>
             </div>
+
+
             <div class="row">
                 <div class="col-md-3"></div>
                 <div class="col-md-1">
@@ -207,17 +213,17 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-7">
+                <div class="col-md-6 justify-content-center">
                     <div>
                         <span><b>所有样本标注状态：</b></span>
                         <textarea class="form-control" id="annotation_total_status"  rows="8"></textarea>
                     </div>
                     <br/>
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-6 justify-content-center">
                     <div >
                         <span><b>当前样本标注状态：</b></span>
-                        <textarea class="form-control" id="annotation_cur_status" style="width:850px" rows="8"></textarea>
+                        <textarea class="form-control" id="annotation_cur_status"  rows="8"></textarea>
                     </div>
                     <br/>
                     <button class="btn btn-primary" id="btn_save" type="button">保存</button>
