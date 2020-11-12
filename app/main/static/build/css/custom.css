@@ -29,7 +29,7 @@ div {
 }
 
 form {
-    width: 850px;
+    width: auto;
     background: #ccc;
     /* margin: 0 auto; */
     padding: 5px;

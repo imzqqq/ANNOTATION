@@ -151,7 +151,7 @@ function  mouse_click() {
             updateToothRadio()
 
         }
-        else if (document.getElementById("moving_box") !== null && e.target.className.indexOf("img-main") != -1) {
+        else if (document.getElementById("moving_box") !== null  && e.target.className.match(/box/)) {
             var mb = document.getElementById("moving_box");
             if($(mb).width()=== 0 || $(ab).height() === 0) return ;
             updateLoc(mb);
