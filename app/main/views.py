@@ -6,7 +6,7 @@ from . import main
 from app.models import User, InvitationCode, Picture, Annotation, User_to_Pic
 from .forms import LoginForm, RegistForm, PasswordForm, InviteRegistForm
 from app.extensions import db
-from app.tool import get_bing_img_url
+from app.tool import get_bing_img_url,resize_image
 from sqlalchemy.sql import and_ , or_
 import datetime
 import codecs
@@ -223,7 +223,7 @@ def image_hosting():
     """
     page = request.args.get('page', 1, type=int)
     imgs = Picture.query.order_by(Picture.id.desc()).paginate(
-        page, per_page=20, error_out=False)
+        page, per_page=8, error_out=False)
     # 表连接
     user_to_pic = User_to_Pic.query.all()
     # img_annlist = Annotation.query.join(Picture).all()
@@ -237,14 +237,18 @@ def query_pic():
     # 'http://127.0.0.1:5000/uploads/20201013191128.bmp' , 寻找本地路径
     tmp_url_ = url_path.split("/")
     local_url_path = tmp_url_[-2] + "/" + tmp_url_[-1]
-    filesize = size_format(os.path.getsize(local_url_path))
+    original_file_aps = local_url_path.split('.')
+    file_name = original_file_aps[0]
+    ext = original_file_aps[1]
+    original_url = file_name.split('_')[0] + '.' + ext
+    filesize = size_format(os.path.getsize(original_url))
 
     # 获取图片的分辨率
     # from PIL import Image
     # img_resolution = list(Image.open(local_url_path).size)  # 宽高
 
     import cv2
-    img = cv2.imread(local_url_path)
+    img = cv2.imread(original_url)
 
     sp = img.shape
     height = sp[0]  # height(rows) of image
@@ -253,7 +257,7 @@ def query_pic():
     res = {
         'code': 1,
         'msg': u'图片上传成功!',
-        'url': url_path,
+        'url': original_url,
         'size': filesize,
         'img_resolution_w': width,
         'img_resolution_h': height,
@@ -300,8 +304,8 @@ def upload():
 
             if upload_type is None or upload_type == '' or upload_type == 'local':
                 file.save(os.path.join(current_app.config['MILAB_UPLOAD_PATH'], filename))
-                filename_s = "resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['small'])"
-                filename_m = "resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['medium'])"
+                filename_s = resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['small'])
+                filename_m = resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['medium'])
 
                 url_path = url_for('main.get_image', filename=filename)
                 url_path_s = url_for('main.get_image', filename=filename_s)

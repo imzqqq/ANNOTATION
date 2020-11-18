@@ -37,7 +37,7 @@
     <div class="row">
         {% for img in imgs.items%}
             <div class="card m-1" style="width: 16rem;">
-                <img src="{{img.url}}" class="card-img-top rounded" style="height: 12rem;" alt="{{img.name}}">
+                <img src="{{img.url_m}}" class="card-img-top rounded" style="height: 12rem;" alt="{{img.name}}">
                 <div class="card-body">
                     <span id="{{img.id}}" style="font-weight: bold;" title="{{img.name}}">{{img.name}}</span><br/>
                     <button id="rename" onclick="update({{img.id}})">重命名</button><br/>

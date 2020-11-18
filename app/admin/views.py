@@ -215,7 +215,7 @@ def image_hosting():
     """
     page = request.args.get('page', 1, type=int)
     imgs = Picture.query.order_by(Picture.id.desc()).paginate(
-        page, per_page=20, error_out=False)
+        page, per_page=8, error_out=False)
     return render_template('admin/image_hosting.html', imgs=imgs)
 
 
@@ -357,7 +357,7 @@ def cbct_list():
     '''
     page = request.args.get('page', 1, type=int)
     imgs= Picture.query.order_by(Picture.id.desc()).paginate(
-        page, per_page=20, error_out=False)
+        page, per_page=8, error_out=False)
     # img_annlist = Annotation.query.join(Picture).all()
     user_to_pic = User_to_Pic.query.all()
 
