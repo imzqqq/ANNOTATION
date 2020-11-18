@@ -526,12 +526,11 @@ def toExcel(path_annotation):
     #     print("\n\n---\n", item)
 
     pf = pd.DataFrame(result_list)
-    order = ['id', 'file_name', "patient_name", 'sex', 'detail_age', 'format_age', 'shoot_date', 'review_flag',
-             'annotation_user', 'annotation_date',
+    order = ['id', 'file_name', 'annotation_user', 'annotation_date',
              '18', '17', '16', '15', '14', '13', '12', '11',
              '21', '22', '23', '24', '25', '26', '27', '28',
              '48', '47', '46', '45', '44', '43', '42', '41',
-             '31', '32', '33', '34', '35', '36', '37', '38']
+             '31', '32', '33', '34', '35', '36', '37', '38', 'detail_age', 'format_age', 'shoot_date', "patient_name", 'sex', 'review_flag']
     pf = pf[order]
     file_path = pd.ExcelWriter('annotation/' + path_name + '.xlsx')  # 打开excel文件
     # 替换空单元格

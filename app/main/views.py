@@ -394,7 +394,7 @@ def save_annotation():
     path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], 'annotation.txt')
     # file name -> group by user name
     # name_annotation = user_name + '_' + str(today) + '.txt'
-    name_annotation = user_name + '_' + str(today) + '.txt'
+    name_annotation = user_name + '.txt'
     path_annotation_user = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], name_annotation)
     # all in one txt file
     name_annotation_total = 'annotation.txt'
@@ -413,7 +413,7 @@ def save_annotation():
         if mu.acquire(True):
             if not os.path.exists(path_annotation_user):
                 file = codecs.open(
-                    path_annotation, mode='a+', encoding='utf-8')
+                    path_annotation_user, mode='a+', encoding='utf-8')
                 file.close()
             file = codecs.open(path_annotation_user, mode='a+', encoding='utf-8')
             file.write(tags_new)
