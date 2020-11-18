@@ -1,12 +1,44 @@
 {% extends 'admin/common/base.html' %}
 {% block title %}标注列表 (详细){% endblock %}
 
+{% block js %}
+    {{ super() }}
+    <script>
+    function selectcity(){
+        var target=$("#sid option:selected").text();
+        $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "{{ url_for('admin.ann_list_u_query') }}",
+             data: {'username': target},
+             beforeSend:function (){},
+             success:function (res){
+                 if(res.code === 1){
+                     document.getElementById('ajaxData').innerHTML  = res.df;
+                 }
+             }
+         });
+    }
+    </script>
+{% endblock %}
+
+
+
 {% block content %}
   <h3>全部标注数据集 </h3>
   {% if flag %}
-    {{ df.to_html(classes="table table-striped") | safe}}
+      <div>
+          <select  class="form-control" id="sid" onchange="selectcity()">
+          <option>---请按标注用户进行筛选---</option>
+          {% for annuser in users %}
+              <option>{{annuser.user}}</option>
+          {% endfor %}
+           </select>
+      </div>
+       <br/><br/>
+      <div id="ajaxData" class="table table-striped" style="font-size: 13px"></div>
   {% else %}
-    <br/><br/><br/>
-    <h1 class="card-title text-center font-weight-bold">还没有任何数据！</h1>
+      <br/><br/><br/>
+      <h1 class="card-title text-center font-weight-bold">还没有任何数据！</h1>
   {% endif %}
 {% endblock %}

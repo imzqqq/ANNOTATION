@@ -280,6 +280,37 @@ def ann_list():
         ann_lists = Annotation.query.filter_by(user=current_user_name).all()
     return render_template('admin/ann_list.html', ann_lists=ann_lists)
 
+@admin.route('/ann_list_u_query', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def ann_list_u_query():
+    target = request.form['username']
+    # print("========================")
+    # print(target)
+    # print("========================")
+    all_ann_lists = Annotation.query.filter_by(user=target).first()
+
+    if (all_ann_lists):
+        file_name = toExcel(all_ann_lists.file_name)
+        file_path = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], file_name)
+        # print(file_path)
+        df = pd.read_excel(file_path)
+        data_html = df.to_html()
+        # 转json数据
+        # df_json = df.to_json(orient='split', force_ascii=False)
+        # json1 = json.loads(df_json)
+        res = {
+            'code': 1,
+            'msg': u'查询成功!',
+            'df': data_html,
+        }
+        return jsonify(res)
+    else:
+        res = {
+            'code': 0,
+            'msg': u'无法查询!',
+        }
+        return jsonify(res)
 
 @admin.route('/ann_list_u', methods=['GET', 'POST'])
 @login_required
@@ -290,16 +321,13 @@ def ann_list_u():
     '''
     current_user_name = current_user.username
     if (current_user.role == 'super_admin'):
-        all_ann_lists = Annotation.query.filter_by(user='all user annotation').first()
+        result = Annotation.query.order_by(Annotation.user.desc()).with_entities(Annotation.user).distinct().all()
+    # 不是超级管理员只查看自己的
     else:
-        all_ann_lists = Annotation.query.filter_by(user=current_user_name).first()
+        result = Annotation.query.filter_by(user=current_user_name).all()
 
-    if(all_ann_lists):
-        file_name = toExcel(all_ann_lists.file_name)
-        file_path = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], file_name)
-        df = pd.read_excel(file_path).head()
-        # data_html = df.to_html()
-        return render_template('admin/ann_list_u.html', df=df, flag=True)
+    if(result):
+        return render_template('admin/ann_list_u.html', flag=True, users=result)
     else:
         return render_template('admin/ann_list_u.html', flag=False)
 
