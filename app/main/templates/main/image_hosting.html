@@ -62,7 +62,6 @@
             return;
         }
         var obj = {};
-        obj.img_url = img_url;
         obj.img_name = img_name;
         obj.img_size ='';
         obj.img_resolution_w = '';
@@ -78,6 +77,7 @@
                         obj.img_size = res.size;
                         obj.img_resolution_w = res.img_resolution_w;
                         obj.img_resolution_h = res.img_resolution_h;
+                        obj.img_url = res.url;
                      {#console.log(obj.img_size);#}
                      parent.imagehosting_callback(obj);  //直接callback
                      parent.layer.close(index);
@@ -113,7 +113,7 @@
     <div class="row">
         {% for img in imgs.items%}
             <div class="card m-1" style="width: 16rem;">
-                <img src="{{img.url}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
+                <img src="{{img.url_s}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
                 <div class="card-body">
                     <span>{{img.name}}</span><br/><br/>
                     {% for annlist in user_to_pic %}
