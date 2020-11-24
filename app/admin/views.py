@@ -15,6 +15,7 @@ from app.config import config
 from sqlalchemy.sql import and_, or_
 from app.tool import get_bing_img_url
 from app.tool import resize_image, toExcel
+from app.tool import draw_pic, draw_pic_online
 import json
 import threading
 import pandas as pd
@@ -24,6 +25,13 @@ os.environ['TZ'] = 'Asia/Shanghai'
 
 # 创建一个锁
 mu = threading.Lock()
+
+
+@admin.before_request
+def before_request():
+    session.permanent = True
+    current_app.permanent_session_lifetime = timedelta(days=1)
+
 
 @admin.route('/', methods=['GET', 'POST'])
 @login_required
@@ -385,7 +393,75 @@ def audit():
     '''
     预留审核接口
     '''
-    return render_template('admin/audit.html')
+    user_to_pic = []
+    current_user_name = current_user.username
+    # res = draw_pic('M徐浩然20070709-20170109.bmp', 'daijiaqi')
+    if (current_user.role == 'super_admin'):
+        result = User_to_Pic.query.order_by(User_to_Pic.username.desc()).with_entities(User_to_Pic.username).distinct().all()
+
+    # 不是超级管理员只查看自己的
+    else:
+        result = User_to_Pic.query.filter_by(username=current_user_name).all()
+
+    if (result):
+        return render_template('admin/audit.html', flag=True, users=result)
+    else:
+        return render_template('admin/audit.html', flag=False)
+
+
+@admin.route('/audit_query', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def audit_query():
+    tooth_list = []
+    loc_list = []
+    username = request.form['user']
+    picname = request.form['picture']
+
+    pic_result = Picture.query.filter_by(name=picname).first()
+    pic_url = pic_result.url
+    location_item = draw_pic_online(picname, username)    # 坐标信息
+    # print("===============", location_item)
+    for loc in location_item:
+        loc_item = [location_item[loc].xmin, location_item[loc].ymin, location_item[loc].xmax, location_item[loc].ymax, location_item[loc].height, location_item[loc].width]
+        loc_list.append(loc_item)
+        tooth_list.append(location_item[loc].regionClass)
+
+    tmp_url_ = pic_url.split("/")
+    local_url_path = tmp_url_[-2] + "/" + tmp_url_[-1]
+
+    import cv2
+    img = cv2.imread(local_url_path)
+
+    sp = img.shape
+    height = sp[0]  # height(rows) of image
+    width = sp[1]  # width(colums) of image
+    res = {
+        'code': 1,
+        'msg': u'成功!',
+        'url': pic_url,
+        'loc_list': loc_list,
+        'tooth_list': tooth_list,
+        'img_resolution_w': width,
+        'img_resolution_h': height,
+    }
+    return jsonify(res)
+
+@admin.route('/audit_query_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def audit_query_user():
+    username = request.form['user']
+    picname = []
+
+    pic_list = User_to_Pic.query.filter_by(username=username).all()
+    for pic in pic_list:
+        picname.append(pic.picname)
+    res = {
+        'code': 1,
+        'pic_list': picname
+    }
+    return jsonify(res)
 
 
 def add_data(obj):
@@ -397,4 +473,9 @@ def add_data(obj):
         print(e)
         db.session.rollback()
         flash("添加失败!")
-        
+
+
+@admin.route('/audit/<path:filename>')
+def get_audit_image(filename):
+    # print(current_app.config['MILAB_AUDIT_PATH'])
+    return send_from_directory(current_app.config['MILAB_AUDIT_PATH'], filename)

@@ -1,9 +1,172 @@
 {% extends 'admin/common/base.html' %}
 {% block title %}牙龄评分标注后台管理系统{% endblock %}
 
+{% block css %}
+  {{ super() }}
+  <link
+    href="{{ url_for('admin.static', filename='css/audit.css') }}"
+    rel="stylesheet"/>
+{% endblock %}
+
+{% block js %}
+    {{ super() }}
+    <script>
+    function draw(loc_list, tooth_list, img_w, img_h)
+    {
+        const parent = document.querySelector('.index');
+        img = document.getElementById("img-item");
+        var ratio = 1;
+
+        var ratio_base_on_h = img.clientHeight / img_h
+        var ratio_base_on_w = img.clientWidth /img_w ;
+        // console.log("img.clientHeight: "+ img.clientHeight);
+        // console.log("img.clientWidth: "+ img.clientWidth);
+        // console.log("img_resolution_w: "+img_w);
+        // console.log("img_resolution_h: "+img_h);
+
+        // case 1
+        var real_size_1_w = img_w * ratio_base_on_w;
+        var real_size_1_h = img_h * ratio_base_on_w;
+        // console.log("real_size_1_h: "+real_size_1_h);
+        // case 2
+        var real_size_2_w = img_w * ratio_base_on_h;
+        var real_size_2_h = img_h * ratio_base_on_h;
+        // console.log("real_size_2_w: "+real_size_2_w);
+        if(real_size_1_h <= img.clientHeight){
+            ratio = ratio_base_on_w;
+            // console.log("ratio1: "+ratio);
+        }
+        else if (real_size_2_w <= img.clientWidth){
+            ratio = ratio_base_on_h;
+            // console.log("ratio2: "+ratio);
+        }
+        boxId = 0;
+        const img_main = document.querySelector('.img-main');
+        var loc_length = loc_list.length;
+        for(var i=0; i < loc_length; i++){
+
+            startX = img.offsetLeft + loc_list[i][0] * ratio
+            startY = img.offsetTop + loc_list[i][1] * ratio
+            height = loc_list[i][4] * ratio
+            width = loc_list[i][5] * ratio
+            // console.log(startX,startY,height,width)
+
+            var active_box_total = document.createElement("div");
+            active_box_total.id = 'parent_box_' + boxId ; // boxId默认为1
+            active_box_total.className = "parent_box";
+            parent.appendChild(active_box_total);
+
+            //box
+            var active_box = document.createElement("div");
+            active_box.id = "active_box";
+            active_box.setAttribute("box_id", 'box_' + boxId); // boxId默认为1
+            active_box.className = "box";
+            active_box.style.position = 'absolute';
+            active_box.style.top = startY + 'px';
+            active_box.style.left = startX + 'px';
+            active_box.style.height = height + 'px' ;
+            active_box.style.width = width + 'px';
+            active_box_total.appendChild(active_box);
+            //label
+            var active_label = document.createElement("div");
+            active_label.id = 'label_box_' + boxId;
+            active_label.className = "label";
+            active_label.style.position = 'absolute';
+            active_label.style.top = startY - 25 + 'px';
+            active_label.style.left = startX - 3 + 'px';
+            active_box_total.appendChild(active_label);
+            $(active_label).html('<div class="box_label">' + "<font size=2>" + tooth_list[i] + "</font>" + "</div>");
+            boxId++;
+        }
+
+    }
+
+    function selectuser(){
+        var user = $("#user_id option:selected").text();
+        $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "{{ url_for('admin.audit_query_user')}}",
+             data: {'user': user},
+             beforeSend:function (){},
+             success:function (res) {
+                 if(res.code === 1){
+                     var pic = $("#pic_id");
+                     pic.empty();
+                     pic.append(" <option>---请选择图片---</option>");
+                     var data = res.pic_list;
+                     {#console.log(data)#}
+                     if (data != null){
+                    	//循环返回的data数据,追加option标签
+                        for(var i =0 ;i < data.length;i++){
+                            pic.append("<option>"+ data[i] +"</option>");
+                        }
+                    }
+                 }
+             }
+         });
+    }
+
+    function selectuser_to_pic(){
+        var user=$("#user_id option:selected").text();
+        var pic =$("#pic_id option:selected").text();
+        $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "{{ url_for('admin.audit_query') }}",
+             data: {'user': user, 'picture': pic},
+             beforeSend:function (){},
+             success:function (res) {
+                 if(res.code === 1){
+                     {#console.log(res.url);#}
+                     {#console.log(res.loc_list);#}
+                     {#console.log(res.img_resolution_w)#}
+                     var img_main = document.createElement("div");
+                     img_main.className = "img-main";
+                     img_main.id = "img-item";
+
+                     // img_main.css({ "background": "url('" + res.url + "')   left top/contain no-repeat" });
+                     {#img_main.src = res.url#}
+                     const parent = document.querySelector('.index');
+                     while (parent.firstChild) {
+                        parent.removeChild(parent.firstChild);
+                     }
+                     parent.appendChild(img_main)
+                     $('#img-item').css({ "background": "url('" + res.url + "')   left top/contain no-repeat" });
+                     {#console.log(res.tooth_list)#}
+                     draw(res.loc_list, res.tooth_list, res.img_resolution_w, res.img_resolution_h);
+                 }
+             }
+         });
+    }
+    </script>
+{% endblock %}
+
+
 {% block content %}
 <div class="admin-index">
-    <p>审核页面！</p>
+    {% if flag %}
+        <div>
+            <select  class="custom-select" id="user_id" onchange="selectuser()">
+              <option>---请按标注用户进行筛选---</option>
+              {% for annuser in users %}
+                  <option>{{annuser.username}}</option>
+              {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select  class="custom-select" id="pic_id" onchange="selectuser_to_pic()">
+              <option>---选择标注图片---</option>
+            </select>
+        </div>
+        <br/>
+
+        <div class="index"></div>
+    {% else %}
+        <br/><br/><br/>
+        <h1 class="card-title text-center font-weight-bold">还没有任何数据！</h1>
+    {% endif %}
     <br>
 </div>
 {% endblock %}

@@ -1,0 +1,23 @@
+.img-main {
+    width: auto;
+    height: 800px;
+    border: 1px solid #53c3e4;
+    /*max-height: 100%;*/
+    /*max-width: 100%;*/
+    display: block;
+    margin: 0 0 0 70px ;
+}
+
+.box {
+    opacity: 1;
+    border: 1px solid #e90808;
+    z-index: 2;
+}
+
+.box_label {
+    opacity: 1;
+    color: #ffff00;
+    font-size: 20px;
+    font-weight: 900 ;
+    z-index: 11;
+}

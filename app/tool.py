@@ -17,6 +17,8 @@ import requests
 import logging
 import PIL
 from PIL import Image
+import cv2
+from app.models import Picture
 
 
 def admin_required(func):
@@ -561,3 +563,111 @@ def resize_image(image, filename, base_width):
     img.save(os.path.join(
         current_app.config['MILAB_UPLOAD_PATH'], filename), optimize=True, quality=85)
     return filename
+
+# def audit_pic(user,pic_name):
+class location():
+    def __init__(self, xl, yl, xr, yr, rClass):
+        self.height = yr - yl
+        self.width = xr - xl
+        self.xmin = xl
+        self.ymin = yl
+        self.xmax = xr
+        self.ymax = yr
+        self.regionClass = rClass
+
+def draw_pic(image_name, user):
+    location_item = dict()
+    all_lines = []
+    global_all_line_item = []
+    # pic_name = image_name + '.bmp'
+
+    name_annotation = user + '.txt'
+    path_annotation_user = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], name_annotation)
+    with open(path_annotation_user, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            all_lines.append(line)
+
+
+    for i in all_lines:
+        line_item = i.split(',')
+        if(line_item[0] == image_name):
+            global_all_line_item.append(line_item)
+
+    for item in global_all_line_item:
+        toothPostion = item[-4]
+        xl = float(item[2])
+        xl_int = int(xl)
+        yl = float(item[3])
+        yl_int = int(yl)
+        xr = float(item[4])
+        xr_int = int(xr)
+        yr = float(item[5])
+        yr_int = int(yr)
+        regionClass = item[-3]
+        if( xl_int >= 0 and yl_int >= 0 and xr_int >= 0 and yr_int >=0):
+            loc = location(xl_int, yl_int, xr_int, yr_int, regionClass)
+        else:
+            continue
+        print(xl_int, yl_int, xr_int, yr_int, regionClass)
+        location_item[toothPostion] = loc
+
+    pic = Picture.query.filter_by(name=image_name).first()
+    tmp_url_ = pic.url.split("/")
+    local_url_path = tmp_url_[-2] + "/" + tmp_url_[-1]
+    image = cv2.imread(local_url_path)
+    # cv2.imshow('test', image)
+    # cv2.waitKey(20000)
+
+
+    for loc in location_item:
+         cv2.rectangle(image, (location_item[loc].xmin, location_item[loc].ymin), (location_item[loc].xmax, location_item[loc].ymax), (0, 0, 255), 1)
+         cv2.putText(image, location_item[loc].regionClass, (location_item[loc].xmin-5, location_item[loc].ymin-5), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+
+    pic_name = tmp_url_[-1].split(".")
+    audit_name = pic_name[0] + '_audit.' + pic_name[1]
+    path_audit_name = os.path.join(current_app.config['MILAB_AUDIT_PATH'], audit_name)
+    print(path_audit_name)
+    cv2.imwrite(path_audit_name, image)
+    local_audit_path = audit_name
+    return local_audit_path
+
+
+def draw_pic_online(image_name, user):
+    location_item = dict()
+    all_lines = []
+    global_all_line_item = []
+    # pic_name = image_name + '.bmp'
+
+    name_annotation = user + '.txt'
+    path_annotation_user = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], name_annotation)
+    with open(path_annotation_user, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            all_lines.append(line)
+
+
+    for i in all_lines:
+        line_item = i.split(',')
+        if(line_item[0] == image_name):
+            global_all_line_item.append(line_item)
+
+    for item in global_all_line_item:
+        toothPostion = item[-4]
+        xl = float(item[2])
+        xl_int = int(xl)
+        yl = float(item[3])
+        yl_int = int(yl)
+        xr = float(item[4])
+        xr_int = int(xr)
+        yr = float(item[5])
+        yr_int = int(yr)
+        regionClass = item[-3]
+        if( xl_int >= 0 and yl_int >= 0 and xr_int >= 0 and yr_int >=0):
+            loc = location(xl_int, yl_int, xr_int, yr_int, regionClass)
+        else:
+            continue
+        # print(xl_int, yl_int, xr_int, yr_int, regionClass)
+        location_item[toothPostion] = loc
+
+    return location_item
