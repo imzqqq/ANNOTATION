@@ -147,7 +147,7 @@
 <div class="admin-index">
     {% if flag %}
         <div>
-            <select  class="custom-select" id="user_id" onchange="selectuser()">
+            <select  class="custom-select select-main" id="user_id" onchange="selectuser()">
               <option>---请按标注用户进行筛选---</option>
               {% for annuser in users %}
                   <option>{{annuser.username}}</option>
@@ -156,7 +156,7 @@
         </div>
 
         <div>
-            <select  class="custom-select" id="pic_id" onchange="selectuser_to_pic()">
+            <select  class="custom-select select-main" id="pic_id" onchange="selectuser_to_pic()">
               <option>---选择标注图片---</option>
             </select>
         </div>
