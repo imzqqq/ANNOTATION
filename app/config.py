@@ -64,10 +64,11 @@ class BaseConfig(object):
     MILAB_REGISTER_INVITECODE = True
 
     MILAB_ANNOTATION_PATH = os.path.join(basedir, 'annotation')
-
+    MILAB_ANNOTATION_BASE = basedir
     MILAB_UPLOAD_TYPE = os.getenv('MILAB_UPLOAD_TYPE', '')
     MILAB_UPLOAD_PATH = os.path.join(basedir, 'uploads')
     MILAB_ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
+    MILAB_AUDIT_PATH = os.path.join(basedir, 'audit')
 
     MILAB_IMG_SIZE = {'small': 400,
                      'medium': 800}
