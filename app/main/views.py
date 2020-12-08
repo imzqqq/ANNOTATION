@@ -22,7 +22,7 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 import app.config as sys_config
 import app.tool as tool
-from app.tool import toExcel
+from app.tool import toExcel, compute_tooth_age
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
@@ -373,93 +373,58 @@ def get_sample():
 # 标注保存接口
 @main.route('/api/annotation/save', methods=['POST'])
 def save_annotation():
-    tags = request.form['tags']
+    print('正在保存')
+    ann_info = request.form['ann_info']
     user_name = request.form['user']
     pic_name = request.form['pic_name']
-    ann_flag = request.form['flag']
+    shoot_date = request.form['shoot_date']
+    annotation_date = request.form['ann_date']
 
-    if (ann_flag == 'false'):
-        flag = False
+    print(ann_info)
+    json_re = json.loads(ann_info)
+    print('---------', json_re)
+
+    tooth_age = compute_tooth_age(pic_name, shoot_date)
+
+    ann_query = Annotation.query.filter_by(ImageName=pic_name, User=user_name).first()
+    if ann_query is None:
+        new_ann_item = Annotation(ImageName=pic_name, User=user_name, Tooth_Annotation_Info=ann_info,
+                                  ShootDate=shoot_date,
+                                  AnnotationDate=annotation_date, Tooth_Age=tooth_age)
+        db.session.add(new_ann_item)
     else:
-        flag = True
-
-    tags_new = ''
-    for tag in tags.split('\n'):
-        if tag == '':
-            continue
-        #除图片名字之外的都分割到一起
-        values = tag.split(',', maxsplit=1)
-        tags_new += values[0] + ',' + values[1]+'\n'
-
-    today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8), name='Asia/Shanghai', )).strftime(
-        "%Y-%m-%d")
-    time_today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8), name='Asia/Shanghai', )).strftime(
-        "%Y-%m-%d %H:%M:%S")
-    path_annotation = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], 'annotation.txt')
-    # file name -> group by user name
-    # name_annotation = user_name + '_' + str(today) + '.txt'
-    name_annotation = user_name + '.txt'
-    path_annotation_user = os.path.join(current_app.config['MILAB_ANNOTATION_PATH'], name_annotation)
-    # all in one txt file
-    name_annotation_total = 'annotation.txt'
-
-    try:
-        if mu.acquire(True):
-            if not os.path.exists(path_annotation):
-                file = codecs.open(
-                    path_annotation, mode='a+', encoding='utf-8')
-                file.close()
-            file = codecs.open(path_annotation, mode='a+', encoding='utf-8')
-            file.write(tags_new)
-            file.close()
-            mu.release()
-
-        if mu.acquire(True):
-            if not os.path.exists(path_annotation_user):
-                file = codecs.open(
-                    path_annotation_user, mode='a+', encoding='utf-8')
-                file.close()
-            file = codecs.open(path_annotation_user, mode='a+', encoding='utf-8')
-            file.write(tags_new)
-            file.close()
-            mu.release()
-
-        # 返回
-        filesize = size_format(os.path.getsize(path_annotation_user))
-        a = Annotation.query.filter_by(txt_file_url=path_annotation_user).first()
-        if a is None:
-            ann = Annotation(user=user_name, date=str(time_today), size=filesize, txt_file_url=path_annotation_user,file_name=name_annotation,)
-            db.session.add(ann)
-        elif a is not None:
-            a.date = str(time_today)
-            a.size = filesize
-            db.session.commit()
-
-        # 总标注列表
-        filesize_total = size_format(os.path.getsize(path_annotation))
-        a_total = Annotation.query.filter_by(txt_file_url=path_annotation).first()
-        if a_total is None:
-            ann = Annotation(user='all user annotation', date=str(time_today), size=filesize_total, txt_file_url= path_annotation, file_name = name_annotation_total)
-            db.session.add(ann)
-        elif a_total is not None:
-            a_total.size = filesize_total
-            a_total.date = str(time_today)
-            db.session.commit()
-
-        # 用户 -> 图片
-        u_p = User_to_Pic.query.filter_by(username=user_name, picname=pic_name).first()
-        if u_p is None:
-            user_pic = User_to_Pic(username=user_name, picname=pic_name, date=time_today, flag_finish=flag)
-            db.session.add(user_pic)
-        elif u_p is not None:
-            u_p.date = time_today
-            u_p.flag_finish = flag
-            db.session.commit()
-
-    except Exception as e:
-        print("Exception: ", e, "!!!")
+        ann_query.Tooth_Annotation_Info = ann_info
+        ann_query.ShootDate = shoot_date
+        ann_query.AnnotationDate = annotation_date
+        ann_query.Tooth_Age = tooth_age
+        db.session.commit()
     result = dict()
     result['message'] = '保存成功！'
+    return jsonify(result)
+
+
+# 标注载入接口
+@main.route('/api/annotation/reload', methods=['POST'])
+def reload_annotation():
+    user_name = request.form['user']
+    pic_name = request.form['pic_name']
+
+    ann_data = Annotation.query.filter_by(ImageName=pic_name, User=user_name).first()
+    if ann_data is None:
+        result = {
+            'code': 0,
+            'msg': u'未查询到标注数据!'
+        }
+    else:
+        annotation_box = ann_data.Tooth_Annotation_Info
+        shoot_date = ann_data.ShootDate
+        print('---',shoot_date)
+        result = {
+            'code': 0,
+            'msg': u'载入成功！',
+            'annotation_box': annotation_box,
+            'shoot_date': shoot_date
+        }
     return jsonify(result)
 
 

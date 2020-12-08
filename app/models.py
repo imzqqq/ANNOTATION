@@ -100,13 +100,16 @@ class Annotation(db.Model):
     标注文件
     '''
     __tablename__ = 'annotation_list'
-    __table_args__ = {"mysql_charset" : "utf8"}
+    __table_args__ = {"mysql_charset": "utf8"}
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(64), nullable=False)
-    date = db.Column(db.String(64))
-    size = db.Column(db.String(64))
-    txt_file_url = db.Column(db.String(256))
-    file_name = db.Column(db.String(256))
+    User = db.Column(db.String(64), ForeignKey(User.username), index=True)
+    ImageName = db.Column(db.String(128), ForeignKey(Picture.name), index=True)
+    AnnotationDate = db.Column(db.String(64))
+    ShootDate = db.Column(db.String(64))
+
+    Tooth_Annotation_Info = db.Column(db.JSON)
+
+    Tooth_Age = db.Column(db.Float)
 
 class User_to_Pic(db.Model):
     '''

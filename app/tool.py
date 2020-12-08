@@ -671,3 +671,63 @@ def draw_pic_online(image_name, user):
         location_item[toothPostion] = loc
 
     return location_item
+
+
+def compute_tooth_age(imagename, shootdate):
+    name_without_suffix = imagename.split('.')[0]
+    re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", name_without_suffix)
+    re_item_sex = ''.join(re.findall(r'[A-Za-z]', name_without_suffix))
+    re_item_number = re.sub("\D", "", name_without_suffix)
+
+    cur_birth_date_year = re_item_number[0:4]
+    cur_birth_date_month = re_item_number[4:6]
+    cur_birth_date_day = re_item_number[6:8]
+
+    cur_year = shootdate.split('-')[0]
+    cur_month = shootdate.split('-')[1]
+    cur_day = shootdate.split('-')[2]
+    # print(cur_day,cur_month,cur_year)
+    # print(cur_shoot_date_day,cur_shoot_date_month,cur_shoot_date_year)
+
+    cur_shoot_date = datetime.date(int(cur_year), int(cur_month), int(cur_day))
+    cur_birth_date = datetime.date(int(cur_birth_date_year), int(cur_birth_date_month),
+                                   int(cur_birth_date_day))
+
+    y, m, d = minus_result(cur_shoot_date, cur_birth_date)
+    age_str = str(y) + 'years-' + str(m) + 'months-' + str(d) + 'days'
+    age = compute_year_age(y, m, d)
+    return age
+
+
+# 判断是否闰年
+def is_leap(year):
+    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+        return True
+    else:
+        return False
+
+# 计算
+month_days = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31,
+              6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+
+def minus_result(first_year, second_year):
+    y = first_year.year - second_year.year
+    m = first_year.month - second_year.month
+    d = first_year.day - second_year.day
+    if d < 0:
+        if second_year.month == 2:
+            if is_leap(second_year.year):
+                month_days[2] = 29
+        d += month_days[second_year.month]
+        m -= 1
+    if m < 0:
+        m += 12
+        y -= 1
+    return y, m, d
+
+def compute_year_age(y, m, d):
+    day_to_month = format(d / 30, '.4f')
+    total_month = int(m) + float(day_to_month)
+    month_to_year = format(total_month / 12, '.4f')
+    year_age = int(y) + float(month_to_year)
+    return year_age

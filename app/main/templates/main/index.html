@@ -24,7 +24,7 @@
             //缩略图
             if(imagehosting_for === 'thumbnail-img') {
                  updateImageDisplay(obj);
-                 get_img_resolution(obj);
+                 // get_img_resolution(obj);
             }
         }
 
@@ -48,9 +48,21 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-1"  id="file-open">
-                    <button id="thumbnail-add_new-btn" type="button" class="btn-dark">添加新全景片</button>
+                    <button id="thumbnail-add_new-btn" type="button" class="btn-dark ">添加新全景片</button>
+                    <br/><br/>
+                    <button class="btn-primary" id="btn_save" type="button">保存</button>
+                    <br/><br/>
+                    <div class="reload"></div>
+{#                    <button id="thumbnail-reload-btn" type="button" class="btn-dark">载入数据</button>#}
                 </div>
-                <div class="col-10 img-main" id="img-item"></div>
+                <div class="col-10 img-main" id="img-item">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 image" style="display:none;">
+                        <img id="source">
+                </div>
             </div>
 
             <div>
@@ -174,19 +186,19 @@
                         <br/>
                     </div>
                     <div>
+{#                        <span><b>样本总数：</b><strong id="total"></strong></span>#}
+{#                        <input type="text" id="jump_page" value="" style="width:100px" placeholder="跳转到指定页"/>#}
+                        <span><b>当前文件：</b><strong id="cur_id"></strong></span>
+                        <span><b>坐标区域：</b><strong id="cur_loc"></strong></span>
+                    </div>
+                    <br/>
+                    <div>
                         <form >
                             <label for="party">拍片日期 </label>&nbsp;
                             <input type="date" id="shootingDate" name="shootingDate" min="1900-01-01" required >
                             <input type="text" id = "datetips"   style="width:300px;color: #b92c28;font-weight:bold;">
                             <span class="validity"></span>
                         </form>
-                    </div>
-                    <br/>
-                    <div>
-{#                        <span><b>样本总数：</b><strong id="total"></strong></span>#}
-{#                        <input type="text" id="jump_page" value="" style="width:100px" placeholder="跳转到指定页"/>#}
-                        <span><b>当前文件：</b><strong id="cur_id"></strong></span>
-                        <span><b>坐标区域：</b><strong id="cur_loc"></strong></span>
                     </div>
                 </div>
             </div>
@@ -205,23 +217,6 @@
                     </button>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6 justify-content-center">
-                    <div>
-                        <span><b>所有样本标注状态：</b></span>
-                        <textarea class="form-control" id="annotation_total_status"  rows="8"></textarea>
-                    </div>
-                    <br/>
-                </div>
-                <div class="col-md-6 justify-content-center">
-                    <div >
-                        <span><b>当前样本标注状态：</b></span>
-                        <textarea class="form-control" id="annotation_cur_status"  rows="8"></textarea>
-                    </div>
-                    <br/>
-                    <button class="btn btn-primary" id="btn_save" type="button">保存</button>
-                </div>
-            </div>
         </div>
 
 
@@ -233,8 +228,7 @@
         <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
         <script src="{{url_for('main.static', filename='build/js/bootstrap-3.3.7/js/bootstrap.min.js')}}"></script>
         <script src="{{url_for('main.static', filename='build/js/layer-v3.1.1/layer/layer.js')}}"></script>
-        <script src="{{url_for('main.static', filename='build/js/custom.js')}}"></script>
-        <script src="{{url_for('main.static', filename='build/js/draw_roi.js')}}"></script>
+        <script src="{{url_for('main.static', filename='build/js/mouse_event.js')}}"></script>
         <script type="text/javascript">
         var sampleCount = "{{ sample_count }}";
         </script>
