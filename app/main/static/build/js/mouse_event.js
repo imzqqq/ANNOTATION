@@ -381,7 +381,6 @@ document.getElementById('canvas').onmousedown =  function (e){
     context.strokeStyle = box_color
     startx = e.offsetX
     starty = e.offsetY
-
     // context.strokeRect(startx,starty,0,0)
     if(e.button === 0) {
         mousedown = 1;
@@ -505,31 +504,29 @@ document.getElementById('canvas').onmousemove = function (e){
 }
 
 document.getElementById('canvas').onmouseup = function (e){
-    if(mousedown && clickedArea.box === -1){
+    // console.log('--抬起', e.offsetX)
+    // console.log(annotation_box)
+    if(mousedown && clickedArea.box === -1 && e.offsetX !== startx){
         // console.log(allNotIn)
-
-
         var regionLoc = current_x + ',' + current_y; //2个坐标
         $('#cur_loc').html(regionLoc);
         //标签类别
         var regionClass = $('#ann input:checked').val();
         //牙位
         var checkedToothPosition = $('input[name="tooth"]:checked').val();
-
-        var current_tooth = document.getElementsByName(checkedToothPosition)[0]
-        if(current_tooth.style.background === 'green'){
-            //layer.msg('同一牙位请勿重复标注');
-            return ;
-        }
-
         tmpBox = newBox(startx,starty,current_x,current_y,allNotIn,checkedToothPosition,regionClass)
-        annotation_box.push(tmpBox)
-        allNotIn++;
-
-        current_tooth.style.background = 'green';
-        updateToothRadio();
-
-        drawonbox();
+        if(tmpBox !== null){
+            annotation_box.push(tmpBox)
+            allNotIn++;
+            var current_tooth = document.getElementsByName(checkedToothPosition)[0]
+            if(current_tooth.style.background === 'green'){
+                //layer.msg('同一牙位请勿重复标注');
+                return ;
+            }
+            current_tooth.style.background = 'green';
+            updateToothRadio();
+            drawonbox();
+        }
     }
     else if(mousedown && clickedArea.box !== -1){
         drawonbox()
@@ -560,7 +557,6 @@ document.getElementById('canvas').oncontextmenu = function (e){
             allNotIn = item.index
         });
         allNotIn++;
-        //console.log(annotation_box)
         drawonbox();
         return false;
     }
