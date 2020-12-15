@@ -1,0 +1,104 @@
+{% extends 'admin/common/base.html' %}
+{% block title %}审核{% endblock %}
+
+{% block css %}
+  {{ super() }}
+  <link
+    href="{{ url_for('admin.static', filename='css/audit.css') }}"
+    rel="stylesheet"/>
+{% endblock %}
+
+{% block js %}
+    {{ super() }}
+    <script src="{{url_for('admin.static', filename='js/index.js')}}"></script>
+
+    <script>
+    function select_image(){
+        // var user = $("#user_id option:selected").text();
+        var imagename = $("#image_id option:selected").text()
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url:"{{ url_for('admin.review_query') }}",
+            data: {'imagename':imagename},
+            beforeSend:function (){},
+            success:function (res) {
+                console.log(res)
+                loadshootdate(res.tooth_age)
+                loadImage(res.url,'review',res.data)
+                //display_review_data(res.data)
+            }
+
+    });
+    function loadshootdate(tooth_age){
+        tr_user_item = document.querySelector('.ann_user')
+        tr_shootdate_item = document.querySelector('.shootdate')
+
+        for(key in tooth_age){
+            th_item = document.createElement('th')
+            $(th_item).html(key)
+            tr_user_item.appendChild(th_item)
+            th_item = document.createElement('th')
+            $(th_item).html(tooth_age[key])
+            tr_shootdate_item.appendChild(th_item)
+        }
+    }
+
+    }
+    </script>
+{% endblock %}
+
+
+{% block content %}
+<div class="admin-index">
+    {% if flag %}
+            <div>
+                <select  class="custom-select select-main" id="image_id" onchange="select_image()">
+                  <option>---请按标注图片进行筛选---</option>
+                  {% for ann_data in image_list %}
+                      <option>{{ann_data.ImageName}}</option>
+                  {% endfor %}
+                </select>
+            </div>
+        <div class="table table-striped">
+            <table>
+                <tbody>
+                    <tr class="ann_user">
+                        <th>用户</th>
+                    </tr>
+                    <tr class="shootdate">
+                        <th>拍片日期</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="index img-main">
+            <canvas id="canvas_for_watch"></canvas>
+        </div>
+        <div class="col-12 image" style="display:none;">
+            <img id="source">
+        </div>
+{#        <div class="review"></div>#}
+        <div class="table table-striped">
+            <table>
+                <thead>
+                    <tr>
+                        <th>        </th>
+                        <th>ToothPosition</th>
+                        <th>Annotation_User</th>
+                        <th>regionClass</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            <tbody class="review">
+            </tbody>
+            </table>
+        </div>
+        <button class="btn-primary" id="btn_save" type="button">保存</button>
+    {% else %}
+        <br/><br/><br/>
+        <h1 class="card-title text-center font-weight-bold">还没有任何数据！</h1>
+    {% endif %}
+    <br>
+</div>
+{% endblock %}

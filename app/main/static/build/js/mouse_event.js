@@ -15,10 +15,15 @@ var startx,//起始x坐标
 var annotation_box=[];//图层
 var scale = 1
 
-var box_color="#0000ff"
-var label_color = 'red';
+var box_color="#00ff00"
+var label_color = "#ff0000";
 
 var clickedArea = {
+  box: -1,
+  pos: 'o'
+};
+
+var rightclickedArea = {
   box: -1,
   pos: 'o'
 };
@@ -39,8 +44,11 @@ var border_size = 2;
 
 var image_naturalWidth, image_naturalHeight
 
+var ctrl_key
+
 function updateImageDisplay(obj){
     //更新牙位状态
+    ctrl_key = 0
     initToothStatus();
     annotation_box = []
     scale = 1;
@@ -48,7 +56,7 @@ function updateImageDisplay(obj){
     mousedown = 0;
     initPage(obj);
     get_labels();
-    console.log('----------',image_naturalWidth,image_naturalHeight)
+    // console.log('----------',image_naturalWidth,image_naturalHeight)
     reloadAnnotationBox();
      // initPage(obj);
 }
@@ -76,17 +84,17 @@ function reloadAnnotationBox(){
             beforeSend: function() {},
             success: function(result) {
                 layer.msg(result.msg);
-
-                // 恢复拍片日期
-                $('#shootingDate').val(result.shoot_date);
-
-                var getDataArray = result.annotation_box
-                annotation_box = JSON.parse(getDataArray)
-                console.log(annotation_box)
-                computereloadbox();
-                reloadtoothstatus();
-                allNotIn++;
-                drawonbox();
+                if(result.code === 1){
+                     // 恢复拍片日期
+                    $('#shootingDate').val(result.shoot_date);
+                    var getDataArray = result.annotation_box
+                    annotation_box = JSON.parse(getDataArray)
+                    // console.log(annotation_box)
+                    computereloadbox();
+                    reloadtoothstatus();
+                    allNotIn++;
+                    drawonbox();
+                }
                 // console.log(result.tooth_list)
                 //draw(result.coordinate_list, result.tooth_list, result.class_list, obj.img_resolution_w , obj.img_resolution_h);
             },
@@ -139,7 +147,7 @@ function initPage(obj){
             day = ("0" + time.getDate()).slice(-2);
             month = ("0" + (time.getMonth() + 1)).slice(-2);
             var today = time.getFullYear() + "-" + (month) + "-" + (day);
-            console.log(annotation_box,user_name,picNameStr,shootdate,today)
+            //console.log(annotation_box,user_name,picNameStr,shootdate,today)
             saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
         }
     });
@@ -157,11 +165,11 @@ function containImg(box_w,box_h,source_w,source_h){
     // case 2
     var real_size_2_w = source_w * ratio_base_on_h;
     var real_size_2_h = source_h * ratio_base_on_h;
-
-    if(real_size_1_h<=source_h){
+    // console.log('----', real_size_1_h, real_size_2_w)
+    if(real_size_1_h<=box_h){
         ratio = ratio_base_on_w;
     }
-    else if (real_size_2_w<=source_w){
+    else if (real_size_2_w<=box_w){
         ratio = ratio_base_on_h;
     }
     return ratio
@@ -206,9 +214,9 @@ function loadSamplePic(obj) {
 
         image_naturalWidth = new_img.naturalWidth
         image_naturalHeight = new_img.naturalHeight
-        console.log(image_naturalWidth,image_naturalHeight)
-        console.log(canvas_item.width)
-        console.log(canvas_item.height)
+        // console.log(image_naturalWidth,image_naturalHeight)
+        // console.log(canvas_item.width)
+        // console.log(canvas_item.height)
         scale = 1
         scale = containImg(canvas_item.width, canvas_item.height, image_naturalWidth, image_naturalHeight)
         realwidth = scale * image_naturalWidth
@@ -247,7 +255,11 @@ function loadSamplePic(obj) {
 
 function saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today) {
     annotation_box_json = JSON.stringify(annotation_box)
-    console.log(annotation_box_json)
+    if(annotation_box_json == '{}'){
+        alert('没有标注信息！')
+        return
+    }
+    // console.log(annotation_box_json)
     $.ajax({
         type: "POST",
         dataType: "json",
@@ -277,7 +289,7 @@ var lineOffset = 4;
 function findCurrentArea(x,y){
     //console.log('---=====',x,y)
     //console.log(layers)
-    tmp_lineOffset = lineOffset * 3;
+    tmp_lineOffset = lineOffset * 2;
     for (var item = 0; item < annotation_box.length; item++){
          if (annotation_box[item].x1 - tmp_lineOffset < x && x < annotation_box[item].x1 + tmp_lineOffset) {
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box [item].y1 + tmp_lineOffset) {
@@ -333,6 +345,14 @@ function findCurrentArea(x,y){
                      pos: 's'
                  };
              }
+             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
+                 if (ctrl_key === 1) {
+                     return {
+                         box: annotation_box[item].index,
+                         pos: 'move'
+                     };
+                 }
+             }
         }
     }
     return {
@@ -340,6 +360,22 @@ function findCurrentArea(x,y){
       pos: 'o'
     };
 }
+
+$(document).keydown(function (event) {
+    // 键盘按下时触发
+	// console.log('key down');
+	if(event.which == 17){
+	    ctrl_key = 1
+    }
+})
+
+$(document).keyup(function (event) {
+    // 键盘抬起时触发
+	// console.log('key down');
+	if(event.which == 17){
+	    ctrl_key = 0
+    }
+})
 
 document.getElementById('canvas').onmousedown =  function (e){
     context.strokeStyle = box_color
@@ -354,10 +390,10 @@ document.getElementById('canvas').onmousedown =  function (e){
         x2 = e.offsetX;
         y2 = e.offsetY;
         clickedArea = findCurrentArea(e.offsetX, e.offsetY);
-        console.log('------', clickedArea.pos)
+        // console.log('------', clickedArea.pos)
         var checkedToothPosition = $('input[name="tooth"]:checked').val();
         var current_tooth = document.getElementsByName(checkedToothPosition)[0]
-        console.log(clickedArea.pos)
+        // console.log(clickedArea.pos)
         if(clickedArea.box === -1){
             if(current_tooth.style.background === 'green'){
                 layer.msg('同一牙位请勿重复标注');
@@ -378,7 +414,7 @@ document.getElementById('canvas').onmousemove = function (e){
 
     canvas_item.style.cursor = "default";
     context.clearRect(0,0,canvas_item.width,canvas_item.height)
-    console.log('清空')
+    // console.log('清空')
     drawpicture();
     if(mousedown  && clickedArea.box === -1)
     {
@@ -389,32 +425,35 @@ document.getElementById('canvas').onmousemove = function (e){
 
     else if(mousedown && clickedArea.box !== -1){
         // console.log('boxid',clickedArea.box)
-
         x2 = e.offsetX;
         y2 = e.offsetY;
         xOffset = x2 - x1;
         yOffset = y2 - y1;
         x1 = x2;
         y1 = y2;
-        if (clickedArea.pos === 'nw' ||
+        if (clickedArea.pos === 'move' ||
+            clickedArea.pos === 'nw' ||
             clickedArea.pos === 'w' ||
             clickedArea.pos === 'sw') {
             annotation_box[clickedArea.box].x1 += xOffset;
             annotation_box[clickedArea.box].realx1 = annotation_box[clickedArea.box].x1 / scale;
           }
-          if (clickedArea.pos === 'nw' ||
+          if (clickedArea.pos === 'move' ||
+              clickedArea.pos === 'nw' ||
             clickedArea.pos === 'n' ||
             clickedArea.pos === 'ne') {
             annotation_box[clickedArea.box].y1 += yOffset;
             annotation_box[clickedArea.box].realy1 = annotation_box[clickedArea.box].y1 / scale;
           }
-          if (clickedArea.pos === 'ne' ||
+          if (clickedArea.pos === 'move' ||
+              clickedArea.pos === 'ne' ||
             clickedArea.pos === 'e' ||
             clickedArea.pos === 'se') {
             annotation_box[clickedArea.box].x2 += xOffset;
             annotation_box[clickedArea.box].realx2 = annotation_box[clickedArea.box].x2 / scale;
           }
-          if (clickedArea.pos === 'sw' ||
+          if (clickedArea.pos === 'move' ||
+              clickedArea.pos === 'sw' ||
               clickedArea.pos === 's' ||
               clickedArea.pos === 'se') {
             annotation_box[clickedArea.box].y2 += yOffset;
@@ -455,6 +494,9 @@ document.getElementById('canvas').onmousemove = function (e){
             else if (tmp_cursor.pos === 'se') {
                 canvas_item.style.cursor = "se-resize";
             }
+            else if (tmp_cursor.pos === 'move') {
+                canvas_item.style.cursor = "move";
+            }
         }
         else {
             canvas_item.style.cursor = "auto";
@@ -463,8 +505,8 @@ document.getElementById('canvas').onmousemove = function (e){
 }
 
 document.getElementById('canvas').onmouseup = function (e){
-    if(clickedArea.box === -1){
-        console.log(allNotIn)
+    if(mousedown && clickedArea.box === -1){
+        // console.log(allNotIn)
 
 
         var regionLoc = current_x + ',' + current_y; //2个坐标
@@ -489,14 +531,44 @@ document.getElementById('canvas').onmouseup = function (e){
 
         drawonbox();
     }
-    else if(clickedArea.box !== -1){
+    else if(mousedown && clickedArea.box !== -1){
         drawonbox()
     }
-    console.log(annotation_box)
+    // console.log(annotation_box)
     mousedown = 0
 
     tmpBox = null;
 }
+
+//右键
+document.getElementById('canvas').oncontextmenu = function (e){
+    rightclickedArea = findCurrentArea(e.offsetX, e.offsetY);
+    // console.log(rightclickedArea)
+    if(rightclickedArea.box !== -1){
+        annotation_box.forEach((item,cur_index)=>{
+            if(item.index == rightclickedArea.box){
+                var target_tooth = item.toothPosition
+                var current_tooth = document.getElementsByName(target_tooth)[0]
+                current_tooth.style.background = '#7F9CCB';
+                annotation_box.splice(cur_index, 1)
+            }
+        });
+        // console.log(annotation_box)
+        //确保index和下标一一对应
+        annotation_box.forEach((item,cur_index)=>{
+            item.index = cur_index
+            allNotIn = item.index
+        });
+        allNotIn++;
+        //console.log(annotation_box)
+        drawonbox();
+        return false;
+    }
+    return false;
+    // console.log(annotation_box)
+}
+
+
 
 //牙位更新radio
 function updateToothRadio(){
@@ -537,8 +609,9 @@ function drawonbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
-        context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
+        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        // context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
+        // context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
     });
 }
 
@@ -589,7 +662,7 @@ function fixPosition(position){
 }
 
 function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
-    console.log('call newBox')
+    // console.log('call newBox')
     boxX1 = x1 < x2 ? x1 : x2;
     boxY1 = y1 < y2 ? y1 : y2;
     boxX2 = x1 > x2 ? x1 : x2;

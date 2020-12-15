@@ -117,15 +117,9 @@
                 <div class="card-body">
                     <span>{{img.name}}</span><br/><br/>
                     {% for annlist in user_to_pic %}
-                        {% if annlist.picname == img.name %}
-                            <span>标注者：{{annlist.username}}</span><br/>
-                            <span>标注时间：{{annlist.date}}</span><br/>
-                            {% if annlist.flag_finish == True  %}
-                                <span>标注状态：已完成</span><br/>
-                            {% endif %}
-                            {% if annlist.flag_finish == False  %}
-                                <span>标注状态：未完成</span><br/>
-                            {% endif %}
+                        {% if annlist.ImageName == img.name %}
+                            <span>标注者：{{annlist.User}}</span><br/>
+                            <span>标注时间：{{annlist.AnnotationDate}}</span><br/>
                             <br/>
                         {% endif %}
                     {% endfor %}

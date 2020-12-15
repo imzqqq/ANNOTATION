@@ -111,14 +111,14 @@ class Annotation(db.Model):
 
     Tooth_Age = db.Column(db.Float)
 
-class User_to_Pic(db.Model):
-    '''
-    用户标注图片
-    '''
-    __tablename__ = 'user_pic'
+class Review_Annotation(db.Model):
+    __tablename__ = 'review_annotation_list'
     __table_args__ = {"mysql_charset": "utf8"}
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), ForeignKey(User.username))
-    picname = db.Column(db.String(64), ForeignKey(Picture.name))
-    date = db.Column(db.String(64))
-    flag_finish = db.Column(db.Boolean(), default=False)
+    Reviewer = db.Column(db.String(256))
+    ImageName = db.Column(db.String(128), ForeignKey(Picture.name), index=True)
+
+    Tooth_Annotation_Info = db.Column(db.JSON)
+
+    Tooth_Age = db.Column(db.Float)
+    flag_review = db.Column(db.Boolean(), default=False)

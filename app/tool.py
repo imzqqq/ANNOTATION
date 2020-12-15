@@ -26,7 +26,7 @@ def admin_required(func):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if current_user.is_admin() == "normal_user":
+            if current_user.is_admin() == "secondary_annotator":
                 abort(403)
             return f(*args, **kwargs)
         return decorated_function
@@ -574,6 +574,153 @@ class location():
         self.xmax = xr
         self.ymax = yr
         self.regionClass = rClass
+
+class Annotation_item():
+    def __init__(self, xl, yl, xr, yr, rClass, user):
+        self.xmin = xl
+        self.ymin = yl
+        self.xmax = xr
+        self.ymax = yr
+        self.regionClass = rClass
+        self.annotationUser = user
+
+
+# def compute_iou(annotation_item1, annotation_item2):
+#     print(annotation_item2.xmax)
+#     print(annotation_item1.xmax)
+#     # computing area of each rectangles
+#     S_rec1 = (annotation_item1.xmax - annotation_item1.xmin) * (annotation_item1.ymax - annotation_item1.ymin)
+#     S_rec2 = (annotation_item2.xmax - annotation_item2.xmin) * (annotation_item2.ymax - annotation_item2.ymin)
+#
+#     # computing the sum_area
+#     sum_area = S_rec1 + S_rec2
+#
+#     # find the each edge of intersect rectangle
+#     left_line = max(annotation_item1.xmin, annotation_item2.xmin)
+#     right_line = min(annotation_item1.xmax, annotation_item2.xmax)
+#     top_line = max(annotation_item1.ymin, annotation_item2.ymin)
+#     bottom_line = min(annotation_item1.ymax, annotation_item2.ymax)
+#
+#     # judge if there is an intersect
+#     if left_line >= right_line or top_line >= bottom_line:
+#         return 0
+#     else:
+#         intersect = (right_line - left_line) * (bottom_line - top_line)
+#         # print(intersect, sum_area, intersect)
+#         return (intersect / (sum_area - intersect)) * 1.0
+
+
+def compute_iou(annotation_item1, annotation_item2):
+    # print(annotation_item2.xmax)
+    # print(annotation_item1.xmax)
+    # computing area of each rectangles
+    S_rec1 = (annotation_item1['realx2'] - annotation_item1['realx1']) * (annotation_item1['realy2'] - annotation_item1['realy1'])
+    S_rec2 = (annotation_item2['realx2'] - annotation_item2['realx1']) * (annotation_item2['realy2'] - annotation_item2['realy1'])
+
+    # computing the sum_area
+    sum_area = S_rec1 + S_rec2
+
+    # find the each edge of intersect rectangle
+    left_line = max(annotation_item1['realx1'], annotation_item2['realx1'])
+    right_line = min(annotation_item1['realx2'], annotation_item2['realx2'])
+    top_line = max(annotation_item1['realy1'], annotation_item2['realy1'])
+    bottom_line = min(annotation_item1['realy2'], annotation_item2['realy2'])
+
+    # judge if there is an intersect
+    if left_line >= right_line or top_line >= bottom_line:
+        return 0
+    else:
+        intersect = (right_line - left_line) * (bottom_line - top_line)
+        # print(intersect, sum_area, intersect)
+        return (intersect / (sum_area - intersect)) * 1.0
+
+def judge_iou(annotation_item_list):
+    for i in range(len(annotation_item_list)):
+        for j in range(i, len(annotation_item_list)):
+            print(i, j)
+            iou = compute_iou(annotation_item_list[i], annotation_item_list[j])
+            print(iou)
+            threshold = 0.5
+            if iou < threshold:
+                return False
+
+    return True
+
+
+def compare_annotation_info(tooth_info_key_tooth_user):
+    confirm_annotation_list = dict()
+    annotation_item_list = []
+    for tooth_position, ann_info_list_user in tooth_info_key_tooth_user.items():
+        annotation_item_list = []
+        for ann_info_user in ann_info_list_user:
+            print(ann_info_user)
+            for user, ann_info in ann_info_user.items():
+                ann_info['annotationUser'] = user
+                ann_info['review_flag'] = False
+                annotation_item_list.append(ann_info)
+                    # Annotation_item(ann_info['realx1'], ann_info['realy1'], ann_info['realx2'], ann_info['realy2'],
+                    #                 ann_info['regionClass'], user))
+        print(annotation_item_list)
+        class_list = []
+        ann_user = ""
+        print(judge_iou(annotation_item_list))
+        if(judge_iou(annotation_item_list)):
+            print('执行')
+            sum_xmin = sum_xmax = sum_ymin = sum_ymax = 0
+            for annotation_item in annotation_item_list:
+                class_list.append(annotation_item['regionClass'])
+                sum_xmin += annotation_item['realx1']
+                sum_xmax += annotation_item['realx2']
+                sum_ymin += annotation_item['realy1']
+                sum_ymax += annotation_item['realy2']
+                ann_user += annotation_item['annotationUser'] + ','
+
+            box_num = len(annotation_item_list)
+            avg_xmin = sum_xmin / box_num
+            avg_xmax = sum_xmax / box_num
+            avg_ymin = sum_ymin / box_num
+            avg_ymax = sum_ymax / box_num
+            total_class = class_list[0]
+            # 有不同的
+            merge_dict = dict()
+            merge_dict['merge'] = True
+            if len(set(class_list)) != 1:
+                for i in range(1, len(class_list)):
+                    total_class += ',' + class_list[i]
+                    merge_dict['review_flag'] = False
+            else:
+                merge_dict['review_flag'] = True
+
+
+            merge_dict['realx1'] = avg_xmin
+            merge_dict['realx2'] = avg_xmax
+            merge_dict['realy1'] = avg_ymin
+            merge_dict['realy2'] = avg_ymax
+            merge_dict['regionClass'] = total_class
+            merge_dict['toothPosition'] = tooth_position
+            merge_dict['annotationUser'] = ann_user
+            confirm_annotation_list[tooth_position] = merge_dict
+        else:
+            for annotation_item in annotation_item_list:
+                class_list.append(annotation_item['regionClass'])
+                ann_user += annotation_item['annotationUser'] + ','
+
+            total_class = class_list[0]
+            # 有不同的
+            cannot_merge_dict = dict()
+            cannot_merge_dict['review_flag'] = False
+            cannot_merge_dict['merge'] = False
+            if len(set(class_list)) != 1:
+                for i in range(1, len(class_list)):
+                    total_class += ',' + class_list[i]
+
+            cannot_merge_dict['ann_list'] = annotation_item_list
+            cannot_merge_dict['regionClass'] = total_class
+            cannot_merge_dict['toothPosition'] = tooth_position
+            cannot_merge_dict['annotationUser'] = ann_user
+            confirm_annotation_list[tooth_position] = cannot_merge_dict
+    print(confirm_annotation_list)
+    return confirm_annotation_list
 
 def draw_pic(image_name, user):
     location_item = dict()

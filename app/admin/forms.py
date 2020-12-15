@@ -54,7 +54,7 @@ class AddUserForm(FlaskForm):
         label='权限', validators=[DataRequired()],
         render_kw={
             'class': 'form-control'
-        }, choices=[('1', '超级管理员'), ('2', '普通管理员'), ('3', '一般用户')], default=3, coerce=str)
+        }, choices=[('1', '一级标注者'), ('2', '二级标注者'), ('3', '审核员')], default=3, coerce=str)
     status = SelectField('状态', choices=[('True', '正常'), ('False', '注销')])
     submit = SubmitField('添加用户')
 
@@ -80,7 +80,7 @@ class EditUserForm(FlaskForm):
         label='权限', validators=[DataRequired()],
         render_kw={
             'class': 'form-control'
-        }, choices=[('1', 'super_admin'), ('2', 'normal_admin'), ('3', 'normal_user')], default=3, coerce=str)
+        }, choices=[('1', '一级标注者'), ('2', '二级标注者'), ('3', '审核员')], default=3, coerce=str)
     status = SelectField('状态', choices=[('True', '正常'), ('False', '注销')])
     submit = SubmitField('修改用户')
 

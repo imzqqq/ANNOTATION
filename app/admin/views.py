@@ -6,7 +6,7 @@ from . import admin
 from app.extensions import db, app_helper
 from .forms import AddAdminForm, LoginForm, AddUserForm, DeleteUserForm, EditUserForm, \
     ChangePasswordForm, AddFolderForm, InvitcodeForm, OnlineToolForm
-from app.models import User, AccessLog, InvitationCode, Picture, Annotation, User_to_Pic
+from app.models import User, AccessLog, InvitationCode, Picture, Annotation
 import os
 import datetime
 from datetime import timedelta
@@ -15,7 +15,7 @@ from app.config import config
 from sqlalchemy.sql import and_, or_
 from app.tool import get_bing_img_url
 from app.tool import resize_image, toExcel
-from app.tool import draw_pic, draw_pic_online
+from app.tool import draw_pic, draw_pic_online, compare_annotation_info
 import json
 import threading
 import pandas as pd
@@ -35,10 +35,9 @@ def before_request():
 
 @admin.route('/', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def index():
     current_user.ping()
-    
+
     return render_template('admin/index.html')
     
 
@@ -53,7 +52,7 @@ def login():
             u = User(username=add_admin_form.username.data.strip(),
                      email=add_admin_form.email.data.strip(),
                      password=add_admin_form.password.data.strip(),
-                     status=True, role="super_admin"
+                     status=True, role="root"
                      )
             db.session.add(u)
             db.session.commit()
@@ -73,10 +72,10 @@ def login():
                 login_user(user=u, remember=login_form.remember_me.data)
                 session.permanent = True
                 app_helper.app.permanent_session_lifetime = timedelta(minutes=10)
-                if(u.role == "super_admin" or u.role == "normal_admin"):
-                    return redirect(url_for('admin.index'))
-                else:
-                    return redirect(url_for('main.index'))
+                # if(u.role == "secondary_annotator"):
+                #     return redirect(url_for('main.index'))
+                # else:
+                return redirect(url_for('admin.index'))
             elif not u.status:
                 flash({'error': '用户已被管理员注销！'})
             elif not u.verify_password(login_form.password.data.strip()):
@@ -102,11 +101,11 @@ def users():
     delete_user_form = DeleteUserForm(prefix='delete_user')
     if add_user_form.validate_on_submit():
         if add_user_form.role.data == '1':
-            role = 'super_admin'
+            role = 'primary_annotator'
         elif add_user_form.role.data == '2':
-            role = 'normal_admin'
+            role = 'secondary_annotator'
         else:
-            role = 'normal_user'
+            role = 'reviewer'
         if add_user_form.status.data == 'True':
             status = True
         else:
@@ -114,6 +113,7 @@ def users():
         u = User(username=add_user_form.username.data.strip(), email=add_user_form.email.data.strip(),
                  role=role, status=status, password=add_user_form.password.data.strip())
         db.session.add(u)
+        db.session.commit()
         flash({'success': '添加用户<%s>成功！' % add_user_form.username.data.strip()})
 
     if delete_user_form.validate_on_submit():
@@ -135,11 +135,11 @@ def user_edit(user_id):
         user.username = edit_user_form.username.data.strip()
         user.email = edit_user_form.email.data.strip()
         if edit_user_form.role.data == '1':
-            user.role = 'super_admin'
+            user.role = 'primary_annotator'
         elif edit_user_form.role.data == '2':
-            user.role = 'normal_admin'
+            user.role = 'secondary_annotator'
         else:
-            user.role = 'normal_user'
+            user.role = 'reviewer'
 
         if edit_user_form.status.data == 'True':
             user.status = True
@@ -205,6 +205,7 @@ def upload():
         pic = Picture(name=file.filename if len(file.filename) < 32 else filename, \
                             url=url_path, url_s=url_path_s, url_m=url_path_m)
         db.session.add(pic)
+        db.session.commit()
         res = {
             'code': 1,
             'msg': u'图片上传成功!',
@@ -274,6 +275,125 @@ def settings():
     系统设置
     '''
     return render_template('admin/settings.html')
+
+@admin.route('/ann_data', methods=['GET', 'POST'])
+@login_required
+def ann_data():
+
+    current_user_name = current_user.username
+    if (current_user.role != 'secondary_annotator'):
+        ann_lists = Annotation.query.with_entities(Annotation.User).distinct().all()
+        # ann_lists = Annotation.query.order_by(Annotation.User.asc()).all()
+    else:
+        ann_lists = Annotation.query.filter_by(User=current_user_name).all()
+        # print('ann_lists', ann_lists)
+    if ann_lists == []:
+        flag = False
+    else:
+        flag = True
+    return render_template('admin/annotation_data.html', flag=flag, ann_lists=ann_lists)
+
+@admin.route('/annotation_data_query_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def annotation_data_query_user():
+    target = request.form['username']
+    ann_lists_by_user = Annotation.query.filter_by(User=target).all()
+    image_list = []
+    if ann_lists_by_user != []:
+        for ann_lists in ann_lists_by_user:
+            image_list.append(ann_lists.ImageName)
+        res = {
+            'code': 1,
+            'image_list': image_list
+        }
+        return jsonify(res)
+
+@admin.route('/annotation_data_query_user_to_image', methods=['GET', 'POST'])
+@login_required
+def annotation_data_query_user_to_image():
+    username = request.form['username']
+    imagename = request.form['imagename']
+
+    print('----', username)
+
+    imagename_result = Picture.query.filter_by(name=imagename).first()
+    image_url = imagename_result.url
+
+    annotation_query = Annotation.query.filter_by(User=username, ImageName=imagename).first()
+    annotation_data = annotation_query.Tooth_Annotation_Info
+
+    res = {
+        'code': 1,
+        'msg': u'成功!',
+        'url': image_url,
+        'annotation_data': annotation_data
+    }
+    return jsonify(res)
+
+
+@admin.route('/review', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def review():
+    ann_data = Annotation.query.with_entities(Annotation.ImageName).distinct().all()
+    if ann_data == []:
+        flag = False
+    else:
+        flag = True
+    return render_template('admin/review.html', flag=flag, image_list=ann_data)
+
+
+@admin.route('/review_query', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def review_query():
+
+    target = request.form['imagename']
+    imagename_result = Picture.query.filter_by(name=target).first()
+    image_url = imagename_result.url
+    tooth_info = dict()   # user 为key
+    tooth_age = dict()
+    tooth_info_key_tooth_user = dict()
+    tooth_info_classify_user = []     # 列表（按用户分）  存储 用户标注项目 字典
+
+    ann_data = Annotation.query.filter_by(ImageName=target).all()
+    for ann_item in ann_data:
+        # 存在字典里
+        tooth_age[ann_item.User] = ann_item.ShootDate
+        tooth_info[ann_item.User] = json.loads(ann_item.Tooth_Annotation_Info)
+    for user, ann_info in tooth_info.items():
+        print('------', type(ann_info))
+        for tooth_info_items in ann_info:
+            tooth_info_distinguish_user = dict()  # 用户标注项目
+            tooth_info_distinguish_user[user] = tooth_info_items
+            tooth_info_classify_user = []
+            # 对于key error
+            if(tooth_info_items['toothPosition'] in tooth_info_key_tooth_user):
+                tooth_info_classify_user = tooth_info_key_tooth_user[tooth_info_items['toothPosition']]
+                tooth_info_classify_user.append(tooth_info_distinguish_user)
+                tooth_info_key_tooth_user[tooth_info_items['toothPosition']] = tooth_info_classify_user
+            else:
+                tooth_info_classify_user.append(tooth_info_distinguish_user)
+                tooth_info_key_tooth_user[tooth_info_items['toothPosition']] = tooth_info_classify_user
+    print('tooth_list_key_by_user ', tooth_info_key_tooth_user)
+    confirm_annotation_list = compare_annotation_info(tooth_info_key_tooth_user)
+    result = {
+        'code': 1,
+        'url': image_url,
+        'data': confirm_annotation_list,
+        'tooth_age': tooth_age
+    }
+    return jsonify(result)
+
+
+
+
+@admin.route('/review_data', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def review_data():
+    return render_template('admin/ann_list.html')
 
 
 @admin.route('/ann_list', methods=['GET', 'POST'])
@@ -360,7 +480,6 @@ def return_files(file_url):
 
 @admin.route('/cbct_list', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def cbct_list():
     '''
     全景片列表
@@ -369,7 +488,7 @@ def cbct_list():
     imgs= Picture.query.order_by(Picture.id.desc()).paginate(
         page, per_page=8, error_out=False)
     # img_annlist = Annotation.query.join(Picture).all()
-    user_to_pic = User_to_Pic.query.all()
+    user_to_pic = Annotation.query.all()
 
     return render_template('admin/cbct_list.html', imgs=imgs, user_to_pic=user_to_pic )
 
@@ -385,83 +504,6 @@ def picture_edit():
     db.session.commit()
     return render_template('admin/edit_user.html')
 
-
-@admin.route('/audit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def audit():
-    '''
-    预留审核接口
-    '''
-    user_to_pic = []
-    current_user_name = current_user.username
-    # res = draw_pic('M徐浩然20070709-20170109.bmp', 'daijiaqi')
-    if (current_user.role == 'super_admin'):
-        result = User_to_Pic.query.order_by(User_to_Pic.username.desc()).with_entities(User_to_Pic.username).distinct().all()
-
-    # 不是超级管理员只查看自己的
-    else:
-        result = User_to_Pic.query.filter_by(username=current_user_name).all()
-
-    if (result):
-        return render_template('admin/audit.html', flag=True, users=result)
-    else:
-        return render_template('admin/audit.html', flag=False)
-
-
-@admin.route('/audit_query', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def audit_query():
-    tooth_list = []
-    loc_list = []
-    username = request.form['user']
-    picname = request.form['picture']
-
-    pic_result = Picture.query.filter_by(name=picname).first()
-    pic_url = pic_result.url
-    location_item = draw_pic_online(picname, username)    # 坐标信息
-    # print("===============", location_item)
-    for loc in location_item:
-        loc_item = [location_item[loc].xmin, location_item[loc].ymin, location_item[loc].xmax, location_item[loc].ymax, location_item[loc].height, location_item[loc].width]
-        loc_list.append(loc_item)
-        tooth_list.append(location_item[loc].regionClass)
-
-    tmp_url_ = pic_url.split("/")
-    local_url_path = tmp_url_[-2] + "/" + tmp_url_[-1]
-
-    import cv2
-    img = cv2.imread(local_url_path)
-
-    sp = img.shape
-    height = sp[0]  # height(rows) of image
-    width = sp[1]  # width(colums) of image
-    res = {
-        'code': 1,
-        'msg': u'成功!',
-        'url': pic_url,
-        'loc_list': loc_list,
-        'tooth_list': tooth_list,
-        'img_resolution_w': width,
-        'img_resolution_h': height,
-    }
-    return jsonify(res)
-
-@admin.route('/audit_query_user', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def audit_query_user():
-    username = request.form['user']
-    picname = []
-
-    pic_list = User_to_Pic.query.filter_by(username=username).all()
-    for pic in pic_list:
-        picname.append(pic.picname)
-    res = {
-        'code': 1,
-        'pic_list': picname
-    }
-    return jsonify(res)
 
 
 def add_data(obj):

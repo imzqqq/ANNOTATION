@@ -3,7 +3,7 @@ from flask import render_template, redirect, request, current_app, url_for, g,\
      send_from_directory, abort, flash, Flask, make_response, jsonify, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
 from . import main
-from app.models import User, InvitationCode, Picture, Annotation, User_to_Pic
+from app.models import User, InvitationCode, Picture, Annotation
 from .forms import LoginForm, RegistForm, PasswordForm, InviteRegistForm
 from app.extensions import db
 from app.tool import get_bing_img_url,resize_image
@@ -136,6 +136,7 @@ def register():
                 password=form.password.data.strip(),
                 status=True, role=False)
         db.session.add(u)
+        db.session.commit()
         if is_use_invite_code:
             ic = InvitationCode.query.filter(InvitationCode.code == form.code.data.strip()).first()
             if ic :
@@ -225,9 +226,9 @@ def image_hosting():
     imgs = Picture.query.order_by(Picture.id.desc()).paginate(
         page, per_page=8, error_out=False)
     # 表连接
-    user_to_pic = User_to_Pic.query.all()
+    user_to_pic = Annotation.query.all()
     # img_annlist = Annotation.query.join(Picture).all()
-    return render_template('image_hosting.html', imgs=imgs,user_to_pic=user_to_pic)
+    return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
 
 
 @main.route('/upload_query', methods=['POST'])
@@ -380,9 +381,8 @@ def save_annotation():
     shoot_date = request.form['shoot_date']
     annotation_date = request.form['ann_date']
 
-    print(ann_info)
-    json_re = json.loads(ann_info)
-    print('---------', json_re)
+    # print(ann_info)
+    # print('------', shoot_date)
 
     tooth_age = compute_tooth_age(pic_name, shoot_date)
 
@@ -392,6 +392,7 @@ def save_annotation():
                                   ShootDate=shoot_date,
                                   AnnotationDate=annotation_date, Tooth_Age=tooth_age)
         db.session.add(new_ann_item)
+        db.session.commit()
     else:
         ann_query.Tooth_Annotation_Info = ann_info
         ann_query.ShootDate = shoot_date
@@ -418,9 +419,9 @@ def reload_annotation():
     else:
         annotation_box = ann_data.Tooth_Annotation_Info
         shoot_date = ann_data.ShootDate
-        print('---',shoot_date)
+        # print('---', shoot_date)
         result = {
-            'code': 0,
+            'code': 1,
             'msg': u'载入成功！',
             'annotation_box': annotation_box,
             'shoot_date': shoot_date
