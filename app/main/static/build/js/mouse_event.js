@@ -515,7 +515,7 @@ document.getElementById('canvas').onmouseup = function (e){
         //牙位
         var checkedToothPosition = $('input[name="tooth"]:checked').val();
         tmpBox = newBox(startx,starty,current_x,current_y,allNotIn,checkedToothPosition,regionClass)
-        console.log(tmpBox)
+        //console.log(tmpBox)
         if(tmpBox !== null){
             annotation_box.push(tmpBox)
             allNotIn++;
@@ -547,17 +547,24 @@ document.getElementById('canvas').oncontextmenu = function (e){
             if(item.index == rightclickedArea.box){
                 var target_tooth = item.toothPosition
                 var current_tooth = document.getElementsByName(target_tooth)[0]
+                current_tooth.children[0].checked = true;
                 current_tooth.style.background = '#7F9CCB';
                 annotation_box.splice(cur_index, 1)
             }
         });
         // console.log(annotation_box)
         //确保index和下标一一对应
-        annotation_box.forEach((item,cur_index)=>{
-            item.index = cur_index
-            allNotIn = item.index
-        });
-        allNotIn++;
+
+        if(annotation_box.length === 0){
+            allNotIn = 0;
+        }
+        else{
+            annotation_box.forEach((item,cur_index)=>{
+                item.index = cur_index
+                allNotIn = item.index
+            });
+            allNotIn++;
+        }
         drawonbox();
         return false;
     }
