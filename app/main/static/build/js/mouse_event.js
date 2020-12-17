@@ -139,7 +139,7 @@ function initPage(obj){
             return ;
         }
         picNameStr = $('#cur_id').html();
-        if(confirm('您确定要保存  <'+picNameStr+'>  的标注信息吗？')) {
+        //if(confirm('您确定要保存  <'+picNameStr+'>  的标注信息吗？')) {
             shootdate = document.querySelector('input[type="date"]').value;
             user = document.getElementsByClassName("avatar");
             user_name =  user[0].alt;
@@ -149,7 +149,7 @@ function initPage(obj){
             var today = time.getFullYear() + "-" + (month) + "-" + (day);
             //console.log(annotation_box,user_name,picNameStr,shootdate,today)
             saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
-        }
+        //}
     });
 }
 
@@ -515,6 +515,7 @@ document.getElementById('canvas').onmouseup = function (e){
         //牙位
         var checkedToothPosition = $('input[name="tooth"]:checked').val();
         tmpBox = newBox(startx,starty,current_x,current_y,allNotIn,checkedToothPosition,regionClass)
+        console.log(tmpBox)
         if(tmpBox !== null){
             annotation_box.push(tmpBox)
             allNotIn++;
@@ -674,10 +675,10 @@ function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
             // realx2 : Math.round(x2 / scale),
             // realy1 : Math.round(y1 / scale),
             // realy2 : Math.round(y2 / scale),
-            realx1 : x1 / scale,
-            realx2 : x2 / scale,
-            realy1 : y1 / scale,
-            realy2 : y2 / scale,
+            realx1 : boxX1 / scale,
+            realx2 : boxX2 / scale,
+            realy1 : boxY1 / scale,
+            realy2 : boxY2 / scale,
 
             index: cur_idx,
             toothPosition:toothPosition,
