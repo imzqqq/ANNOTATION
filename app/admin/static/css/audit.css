@@ -1,5 +1,15 @@
 .img-main {
     width: auto;
+    height: 600px;
+    border: 1px solid #53c3e4;
+    /*max-height: 100%;*/
+    /*max-width: 100%;*/
+    display: block;
+    margin: 0 0 0 0px ;
+}
+
+.img-watch {
+    width: auto;
     height: 800px;
     border: 1px solid #53c3e4;
     /*max-height: 100%;*/
@@ -24,4 +34,81 @@
 
 .select-main{
     margin-top: 10px;
+}
+
+div {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.annotation-index{
+    background: rgb(222, 226, 230);
+    text-align: left;
+}
+
+form {
+    width: auto;
+    background: rgb(222, 226, 230);
+    /* margin: 0 auto; */
+    padding: 5px;
+    border: 1px solid white;
+}
+
+form ol {
+    padding-left: 0;
+}
+
+form li,
+div>p_ {
+    background: #eee;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+    list-style-type: none;
+    border: 1px solid black;
+}
+
+form img {
+    height: 64px;
+    order: 1;
+}
+
+form p {
+    line-height: 32px;
+    padding-left: 10px;
+}
+
+form label,
+form button {
+    background-color: #7F9CCB;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border: 1px ridge black;
+    font-size: 1rem;
+    height: auto;
+}
+
+form input {
+    padding: 5px 5px;
+    border-radius: 5px;
+    border: 1px ridge black;
+    font-size: 1rem;
+    height: auto;
+}
+
+form label:hover,
+form button:hover {
+    background-color: #2D5BA3;
+    color: white;
+}
+
+form label:active,
+form button:active {
+    background-color: #0D3F8F;
+    color: white;
+}
+
+textarea {
+    width: 500px;
 }

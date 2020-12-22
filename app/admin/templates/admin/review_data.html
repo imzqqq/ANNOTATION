@@ -1,122 +1,104 @@
-{% extends 'admin/common/base.html' %} {% block content %}
-{% block title %}用户管理{% endblock %}
+{% extends 'admin/common/base.html' %}
+{% block title %}查看审核数据{% endblock %}
 
-<div class="container">
-  <div class="row">
-    <a href="#" data-toggle="modal" data-target="#user-add" title="添加用户">添加用户</a>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>序号</th>
-          <th>用户名</th>
-          <th>邮箱</th>
-          <th>注册时间</th>
-          <th>上次登录时间</th>
-          <th>权限</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-          <tr>
-            <th scope="row">{{ loop.index }}</th>
-            <td>{{ user.username}}</td>
-            <td>{{ user.email}}</td>
-            <td>{{ user.member_since.strftime("%Y-%m-%d %H:%M:%S") }}</td>
-            <td>{{ user.last_seen.strftime("%Y-%m-%d %H:%M:%S") }}</td>
-            {% if user.role == 'root' %}
-              <td>超级管理员</td>
-            {% elif user.role == 'secondary_annotator' %}
-              <td>二级标注者</td>
-            {% elif user.role == 'primary_annotator' %}
-              <td>一级标注者</td>
-            {% else %}
-              <td>审核员</td>
-            {% endif %} 
-            {% if user.status %}
-              <td>正常</td>
-            {% else %}
-              <td>注销</td>
-            {% endif %}
-            <td>
-              <a href="{{ url_for('admin.user_edit', user_id=user.id) }}">修改</a>
-              |
-              <a href="javascript:delete_user_{{ user.id }}()">删除</a>
-              <form method="post" role="form" id="delete_user_{{ user.id }}">
-                {{ deleteUserForm.hidden_tag() }} 
-                {{ deleteUserForm.user_id(hidden="", class="hidden", value=user.id) }}
-              </form>
+{% block css %}
+  {{ super() }}
+  <link
+    href="{{ url_for('admin.static', filename='css/audit.css') }}"
+    rel="stylesheet"/>
+{% endblock %}
 
-              <script type="text/javascript">
-                function delete_user_{{ user.id }}(){
-                    if(confirm('确定要删除该用户吗?')){
-                      $("#delete_user_{{ user.id }}").submit() ;
+{% block js %}
+    {{ super() }}
+    <script src="{{url_for('admin.static', filename='js/watch.js')}}"></script>
+    <script>
+
+    function selectuser(){
+        var user = $("#user_id option:selected").text();
+        $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "{{ url_for('admin.review_data_query_user')}}",
+             data: {'username': user},
+             beforeSend:function (){},
+             success:function (res) {
+                 if(res.code === 1){
+                     var pic = $("#image_id");
+                     pic.empty();
+                     pic.append(" <option>---请选择图片---</option>");
+                     var data = res.image_list;
+                     {#console.log(data)#}
+                     if (data != null){
+                    	//循环返回的data数据,追加option标签
+                        for(var i =0 ;i < data.length;i++){
+                            pic.append("<option>"+ data[i] +"</option>");
+                        }
                     }
-                }
-              </script>
-              
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+                 }
+             }
+         });
+    }
 
-<!-- Modal -->
-<div
-  class="modal fade bs-example-modal-sm"
-  id="user-add"
-  tabindex="-1"
-  role="dialog">
-  <div class="modal-dialog modal-sm" role="document">
-    <div class="modal-content">
-      <div class="modal-body">
-        <div class="add-user">
-          <form method="post" role="form">
-            {{ addUserForm.hidden_tag() }}
-            <div class="input-group">
-              <span class="input-group-addon"
-                ><i class="glyphicon glyphicon-user"></i>
-              </span>
-              {{ addUserForm.username(class="form-control",
-              placeholder="用户名",required="", autofocus="") }}
-            </div>
-            <div class="input-group">
-              <span class="input-group-addon"
-                ><i class="glyphicon glyphicon-password"></i>
-              </span>
-              {{ addUserForm.password(class="form-control",
-              placeholder="密 码",required="", autofocus="") }}
-            </div>
-            <div class="input-group">
-              <span class="input-group-addon"
-                ><i class="glyphicon glyphicon-envelope"></i>
-              </span>
-              {{ addUserForm.email(class="form-control", placeholder="邮 箱",
-              required="") }}
-            </div>
-            <div class="input-group">
-              <span class="input-group-addon"
-                ><i class="glyphicon glyphicon-briefcase"></i>
-              </span>
-              {{ addUserForm.role(class="form-control", required="") }}
-            </div>
-            <div class="input-group">
-              <span class="input-group-addon"
-                ><i class="glyphicon glyphicon-tree-deciduous"></i>
-              </span>
-              {{ addUserForm.status(class="form-control", required="") }}
-            </div>
-            <div class="modal-footer">
-              <input class="btn btn-default" type="reset" value="重 置" />
-              {{ addUserForm.submit(class="btn btn-primary") }}
-            </div>
-          </form>
+    function selectuser_to_pic(){
+        // tag用于标注有没有用户标选框
+        /*var username;
+        if(document.getElementById('user_id')){
+            username = $("#user_id option:selected").text();
+        }
+        else{
+            username = tag
+        }*/
+
+        //}
+        // console.log(typeof (username))
+        // console.log(typeof (tag))
+        var imagename =$("#image_id option:selected").text();
+        $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "{{ url_for('admin.review_data_query_user_to_image') }}",
+             //data: {'username': username, 'imagename': imagename},
+             data: {'imagename': imagename},
+             beforeSend:function (){},
+             success:function (result) {
+                 if(result.code === 1){
+                     var getDataArray = result.annotation_data
+                     var annotation_box = JSON.parse(getDataArray)
+                     loadImage(result.url, annotation_box)
+                 }
+             }
+         });
+    }
+    </script>
+{% endblock %}
+
+
+{% block content %}
+<div class="admin-index">
+    {% if flag %}
+        <div>
+            <select  class="custom-select select-main" id="image_id" onchange="selectuser_to_pic()">
+              <option>---请按标注图片进行筛选---</option>
+               {% for ann_data in ann_lists %}
+                  <option>{{ann_data[0]}}</option>
+              {% endfor %}
+            </select>
         </div>
-      </div>
-    </div>
-  </div>
+        <br/>
+        <button class="btn-toolbar" id="btn_export" type="button" style="height: 30px">
+            <a href="{{ url_for('admin.return_files', file_url='review.xlsx') }}">导出数据</a>
+        </button>
+        <br><br>
+        <div class="index img-watch">
+            <canvas id="canvas_for_watch"></canvas>
+        </div>
+        <div class="col-12 image" style="display:none;">
+            <img id="source">
+        </div>
+    {% else %}
+        <br/><br/><br/>
+        <h1 class="card-title text-center font-weight-bold">还没有任何数据！</h1>
+    {% endif %}
+    <br>
 </div>
 {% endblock %}

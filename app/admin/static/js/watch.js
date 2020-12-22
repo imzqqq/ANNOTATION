@@ -8,6 +8,7 @@ var border_size = 2;
 allNotIn = 0;
 var new_img
 var canvas_item_width, canvas_item_height
+var review_color = "blue";
 
 var clickedArea = {
   box: -1,
@@ -63,7 +64,7 @@ function loadImage(result_url,ann_box) {
     new_img = document.getElementById('source')
     new_img.src = result_url
 
-    var image_parent = document.querySelector('.img-main')
+    var image_parent = document.querySelector('.img-watch')
 
     canvas_item_width = canvas_item.width
     canvas_item_height = canvas_item.height
@@ -121,7 +122,12 @@ function drawonbox(){
     annotation_box.forEach(item=>{
         item = fixPosition(item)
         context.beginPath();
-        context.strokeStyle = box_color
+        if(item.mark == 'mirror'){
+            context.strokeStyle = review_color
+        }
+        else{
+            context.strokeStyle = box_color
+        }
         context.strokeRect(item.x1,item.y1,item.width,item.height)
 
         context.font = "15px Normal"

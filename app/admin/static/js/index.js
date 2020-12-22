@@ -29,10 +29,11 @@ var startx,//起始x坐标
     allNotIn = 0;
 
 var target_tooth = []
-
+var ctrl_key
 var annotation_box=[];//图层
 var temp_checked_box = [];
 var review_box = [];
+var total_data;
 
 function containImg(box_w,box_h,source_w,source_h){
     var ratio = 1;
@@ -47,32 +48,43 @@ function containImg(box_w,box_h,source_w,source_h){
     var real_size_2_w = source_w * ratio_base_on_h;
     var real_size_2_h = source_h * ratio_base_on_h;
 
-    if(real_size_1_h<=source_h){
+    if(real_size_1_h<=box_h){
         ratio = ratio_base_on_w;
     }
-    else if (real_size_2_w<=source_w){
+    else if (real_size_2_w<=box_w){
         ratio = ratio_base_on_h;
     }
     return ratio
 }
 
+$(document).keydown(function (event) {
+    // 键盘按下时触发
+	// console.log('key down');
+	if(event.which == 17){
+	    ctrl_key = 1
+    }
+})
 
-function loadImage(result_url,action,ann_box) {
+$(document).keyup(function (event) {
+    // 键盘抬起时触发
+	// console.log('key down');
+	if(event.which == 17){
+	    ctrl_key = 0
+    }
+})
+
+// 入口
+function loadImage(result_url,ann_box) {
     //加载图片
-
-    // console.log(annotation_box)
+    total_data = ann_box
+    annotation_box = []
+    scale = 1;
+    allNotIn = 0;
+    mousedown = 0;
     new_img = document.getElementById('source')
     new_img.src = result_url
 
     var image_parent = document.querySelector('.img-main')
-
-    // var canvas_for_watch = document.createElement('canvas')
-    // canvas_for_watch.id = "canvas_for_watch"
-    // image_parent.appendChild(canvas_for_watch)
-
-    // var context = document.getElementById("canvas_for_watch").getContext('2d');
-    //
-    // var canvas_item = document.getElementById('canvas_for_watch')
     canvas_item_width = canvas_item.width
     canvas_item_height = canvas_item.height
     new_img.onload = function () {
@@ -81,23 +93,24 @@ function loadImage(result_url,action,ann_box) {
 
         image_naturalWidth = new_img.naturalWidth
         image_naturalHeight = new_img.naturalHeight
-        // console.log(image_naturalWidth,image_naturalHeight)
-        // console.log(canvas_item.width)
-        // console.log(canvas_item.height)
-        scale = 1
+
         scale = containImg(canvas_item.width, canvas_item.height, image_naturalWidth, image_naturalHeight)
         realwidth = scale * image_naturalWidth
         realheight = scale * image_naturalHeight
-        // context.clearRect(0, 0, canvas_item.width, canvas_item.height)
-        // context.drawImage(new_img, 0, 0, image_naturalWidth, image_naturalHeight, 0, 0, realwidth, realheight)
         clear_and_redraw()
-        if(action === 'view') {
-            annotation_box = ann_box
-            drawonbox()
+        //清除原有的tabel数据
+        tbody = document.querySelector('.review')
+        while(tbody.firstChild){
+            tbody.removeChild(tbody.firstChild)
         }
-        else{
-            display_review_data(ann_box)
+        review_toothposition = document.getElementById('tooth-position');
+        while(review_toothposition.firstChild){
+            review_toothposition.removeChild(review_toothposition.firstChild)
         }
+        console.log(ann_box)
+        get_labels()
+        get_review_data(ann_box)
+        drawonbox()
     }
 }
 
@@ -108,102 +121,132 @@ function clear_and_redraw(){
      context.drawImage(new_img, 0, 0, image_naturalWidth, image_naturalHeight, 0, 0, realwidth, realheight)
 }
 
+//添加tabel元素，以及radio信息
+function add_tabel_element(ann_item,flag){
+    tbody = document.querySelector('.review')
 
-function display_review_data(ann_data){
+    tr_item = document.createElement('tr')
+    th_item = document.createElement('th')
+    // th_item.onclick = clickaction(th_item)
+    $(th_item).html('<input type="checkbox"  id=' + ann_item.toothPosition + ' class="check_box" />')
+    tr_item.appendChild(th_item)
+
+    th_item = document.createElement('th')
+    $(th_item).html(ann_item.toothPosition)
+    tr_item.appendChild(th_item)
+
+    th_item = document.createElement('th')
+    $(th_item).html(ann_item.annotationUser)
+    tr_item.appendChild(th_item)
+
+    th_item = document.createElement('th')
+    $(th_item).html(ann_item.regionClass)
+    tr_item.appendChild(th_item)
+
+    if(flag === 'not_merge'){
+        th_item = document.createElement('th')
+        $(th_item).html('多用户标注iou值过小')
+        tr_item.appendChild(th_item)
+    }
+    tbody.appendChild(tr_item)
+
+    review_toothposition = document.getElementById('tooth-position');
+    label  = document.createElement('label');
+    label.className="radio-inline";
+    $(label).html('<input type="radio" value=' + ann_item.toothPosition + ' name="tooth">' + ann_item.toothPosition)
+    review_toothposition.appendChild(label)
+}
+
+function get_review_data(ann_data){
     for (var key in ann_data){
         var ann_item = ann_data[key];
         if(ann_item['merge']) {
-            ann_item['index'] =  allNotIn;
-            allNotIn++;
-            annotation_box.push(ann_item)
-            console.log(annotation_box)
+            if(ann_item['review_flag'] === false){
+                allNotIn = ann_item['index']
+                allNotIn++;
+                annotation_box.push(ann_item)
+                add_tabel_element(ann_item,'merge')
+            }
         }
         else {
-            for(var i=0; i<ann_item['ann_list'].length; i++){
-                console.log(ann_item['ann_list'][i])
-                ann_item['ann_list'][i]['index'] = allNotIn;
-                allNotIn++;
-                annotation_box.push(ann_item['ann_list'][i])
-            }
+            add_tabel_element(ann_item,'not merge')
         }
-
-        tbody = document.querySelector('.review')
-
-        tr_item = document.createElement('tr')
-        th_item = document.createElement('th')
-        th_item.onclick = clickaction(th_item)
-        $(th_item).html('<input type="checkbox"  id=' + key + ' class="check_box"  onclick="clickaction(' + key +')" />')
-        tr_item.appendChild(th_item)
-
-        th_item = document.createElement('th')
-        $(th_item).html(ann_item.toothPosition)
-        tr_item.appendChild(th_item)
-
-        th_item = document.createElement('th')
-        $(th_item).html(ann_item.annotationUser)
-        tr_item.appendChild(th_item)
-
-        th_item = document.createElement('th')
-        $(th_item).html(ann_item.regionClass)
-        tr_item.appendChild(th_item)
-
-        tbody.appendChild(tr_item)
     }
-    console.log(annotation_box)
+    // console.log(annotation_box)
     computecurrentbox();
 }
-function draw_review_box(){
-    console.log('call on draw_review_box')
-    console.log(temp_checked_box)
-    temp_checked_box.forEach(item=>{
-        var context = document.getElementById("canvas_for_watch").getContext('2d');
-        context.beginPath();
-        item = fixPosition(item)
-        context.strokeStyle = box_color
-        context.strokeRect(item.x1,item.y1,item.width,item.height)
 
-        context.font = "15px Normal"
-        context.fillStyle = label_color
-        context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
-        context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
-    });
-
-}
-
-function get_checkedbox(target_tooth){
-    console.log(temp_checked_box)
-    temp_checked_box.forEach(item=>{
-        annotation_box.push(item)
-    })
-    console.log(annotation_box)
-    temp_checked_box = []
-
-    target_tooth.forEach(tooth=>{
-        annotation_box.forEach((item,cur_index)=>{
-            if(item.toothPosition == tooth){
-                temp_checked_box.push(item)
-                annotation_box.splice(cur_index, 1)
-            }
-        });
-    });
-
-}
-
-
-function clickaction(){
-    tooth_list = document.getElementsByClassName('check_box')
-
-    target_tooth = []
-    for(var i=0; i<tooth_list.length;i++){
-        if(tooth_list[i].checked){
-            target_tooth.push(tooth_list[i].id)
+//审核数据合并
+function get_total_data(ann_data){
+    for (var key in ann_data){
+        var ann_item = ann_data[key];
+        if(ann_item['review_flag'] === true){
+            ann_item['index'] = allNotIn
+            allNotIn++;
+            annotation_box.push(ann_item)
         }
     }
-    console.log(target_tooth)
-    clear_and_redraw(context, new_img)
-    get_checkedbox(target_tooth)
-    draw_review_box()
+
 }
+
+// function draw_review_box(){
+//     temp_checked_box.forEach(item=>{
+//         var context = document.getElementById("canvas_for_watch").getContext('2d');
+//         context.beginPath();
+//         item = fixPosition(item)
+//         context.strokeStyle = box_color
+//         context.strokeRect(item.x1,item.y1,item.width,item.height)
+//
+//         context.font = "15px Normal"
+//         context.fillStyle = label_color
+//         context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
+//         context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
+//     });
+//
+// }
+
+// function get_checked_review_box(target_tooth){
+//     console.log(temp_checked_box)
+//     temp_checked_box.forEach(item=>{
+//         annotation_box.push(item)
+//     })
+//     console.log(annotation_box)
+//     temp_checked_box = []
+//
+//     target_tooth.forEach((tooth,review_index)=>{
+//         annotation_box.forEach((item,ann_index)=>{
+//             if(item.toothPosition == tooth){
+//                 // 临时的review下标统一
+//                 item.index = review_index
+//                 temp_checked_box.push(item)
+//                 annotation_box.splice(ann_index, 1)
+//             }
+//         });
+//     });
+//     //确保index和下标一一对应
+//     annotation_box.forEach((item,cur_index)=>{
+//         item.index = cur_index
+//         allNotIn = item.index
+//     });
+//     allNotIn++;
+// }
+//
+//
+// function clickaction(){
+//     tooth_list = document.getElementsByClassName('check_box')
+//
+//     target_tooth = []
+//     for(var i=0; i<tooth_list.length;i++){
+//         if(tooth_list[i].checked){
+//             target_tooth.push(tooth_list[i].id)
+//         }
+//     }
+//     console.log('target_tooth',target_tooth)
+//     clear_and_redraw(context, new_img)
+//     get_checked_review_box(target_tooth)
+//     console.log(temp_checked_box)
+//     draw_review_box()
+// }
 
 function computecurrentbox(){
     //console.log('call on drawonbox')
@@ -224,8 +267,8 @@ function computecurrentbox(){
 }
 
 function drawonbox(){
-    console.log('call on drawonbox')
-    console.log(annotation_box)
+    //console.log('call on drawonbox')
+    //console.log(annotation_box)
     annotation_box.forEach(item=>{
         var context = document.getElementById("canvas_for_watch").getContext('2d');
         context.beginPath();
@@ -235,8 +278,7 @@ function drawonbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
-        context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
+        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
     });
 }
 
@@ -272,7 +314,7 @@ document.getElementById('canvas_for_watch').onmousedown =  function (e){
         x2 = e.offsetX;
         y2 = e.offsetY;
         clickedArea = findCurrentArea(e.offsetX, e.offsetY);
-        console.log('------', clickedArea.pos)
+        //console.log('------', clickedArea.pos)
     }
 }
 
@@ -291,7 +333,7 @@ document.getElementById('canvas_for_watch').onmousemove = function (e){
     if(mousedown  && clickedArea.box === -1)
     {
         context.strokeRect(startx,starty,e.offsetX-startx,e.offsetY-starty)
-        draw_review_box(target_tooth)
+        drawonbox()
     }
         //把之前的画上
 
@@ -306,38 +348,42 @@ document.getElementById('canvas_for_watch').onmousemove = function (e){
         x1 = x2;
         y1 = y2;
         console.log(xOffset,yOffset)
-        if (clickedArea.pos === 'nw' ||
+        if (clickedArea.pos === 'move' ||
+            clickedArea.pos === 'nw' ||
             clickedArea.pos === 'w' ||
             clickedArea.pos === 'sw') {
-            temp_checked_box[clickedArea.box].x1 += xOffset;
-            temp_checked_box[clickedArea.box].realx1 = temp_checked_box[clickedArea.box].x1 / scale;
+            annotation_box[clickedArea.box].x1 += xOffset;
+            annotation_box[clickedArea.box].realx1 = annotation_box[clickedArea.box].x1 / scale;
           }
-          if (clickedArea.pos === 'nw' ||
+          if (clickedArea.pos === 'move' ||
+              clickedArea.pos === 'nw' ||
             clickedArea.pos === 'n' ||
             clickedArea.pos === 'ne') {
-            temp_checked_box[clickedArea.box].y1 += yOffset;
-            temp_checked_box[clickedArea.box].realy1 = temp_checked_box[clickedArea.box].y1 / scale;
+            annotation_box[clickedArea.box].y1 += yOffset;
+            annotation_box[clickedArea.box].realy1 = annotation_box[clickedArea.box].y1 / scale;
           }
-          if (clickedArea.pos === 'ne' ||
+          if (clickedArea.pos === 'move' ||
+              clickedArea.pos === 'ne' ||
             clickedArea.pos === 'e' ||
             clickedArea.pos === 'se') {
-              console.log(temp_checked_box[clickedArea.box].x2)
-            temp_checked_box[clickedArea.box].x2 += xOffset;
-              console.log(temp_checked_box[clickedArea.box].x2)
-            temp_checked_box[clickedArea.box].realx2 = temp_checked_box[clickedArea.box].x2 / scale;
+              //console.log(annotation_box[clickedArea.box].x2)
+            annotation_box[clickedArea.box].x2 += xOffset;
+              //console.log(annotation_box[clickedArea.box].x2)
+            annotation_box[clickedArea.box].realx2 = annotation_box[clickedArea.box].x2 / scale;
           }
-          if (clickedArea.pos === 'sw' ||
+          if (clickedArea.pos === 'move' ||
+              clickedArea.pos === 'sw' ||
               clickedArea.pos === 's' ||
               clickedArea.pos === 'se') {
-            temp_checked_box[clickedArea.box].y2 += yOffset;
-            temp_checked_box[clickedArea.box].realy2 = temp_checked_box[clickedArea.box].y2 / scale;
+            annotation_box[clickedArea.box].y2 += yOffset;
+            annotation_box[clickedArea.box].realy2 = annotation_box[clickedArea.box].y2 / scale;
           }
-          draw_review_box(target_tooth)
+          drawonbox()
     }
 
     else if (!mousedown) {
         console.log('------', clickedArea.pos)
-        draw_review_box(target_tooth)
+        drawonbox()
         //console.log('move :', e.offsetX, e.offsetY)
         tmp_cursor = findCurrentArea(e.offsetX, e.offsetY)
         if (tmp_cursor.box !== -1) {
@@ -368,6 +414,9 @@ document.getElementById('canvas_for_watch').onmousemove = function (e){
             else if (tmp_cursor.pos === 'se') {
                 canvas_item.style.cursor = "se-resize";
             }
+            else if (tmp_cursor.pos === 'move') {
+                canvas_item.style.cursor = "move";
+            }
         }
         else {
             canvas_item.style.cursor = "auto";
@@ -376,13 +425,59 @@ document.getElementById('canvas_for_watch').onmousemove = function (e){
 }
 
 document.getElementById('canvas_for_watch').onmouseup = function (e){
-    if(clickedArea.box !== -1){
-        draw_review_box(target_tooth)
+    if(mousedown && clickedArea.box !== -1){
+        drawonbox()
+    }
+    else if(mousedown && clickedArea.box === -1 && e.offsetX !== startx){
+        var new_box = true
+        var check_tooth = $('input[name="tooth"]:checked').val()
+        console.log(typeof check_tooth)
+        annotation_box.forEach(item=>{
+            if(item.toothPosition == check_tooth){
+                layer.msg('该牙位已经有标注信息，请修改')
+                new_box = false
+            }
+        })
+        if(new_box && check_tooth != undefined){
+            var regionClass = $('#ann input:checked').val();
+            tmpBox = newBox(startx,starty,current_x,current_y,allNotIn,check_tooth,regionClass)
+            if(tmpBox !== null){
+                annotation_box.push(tmpBox)
+                allNotIn++;
+                drawonbox();
+            }
+        }
+
     }
     // console.log(annotation_box)
     mousedown = 0
+    tmpBox = null;
 }
 
+//右键
+document.getElementById('canvas_for_watch').oncontextmenu = function (e){
+    rightclickedArea = findCurrentArea(e.offsetX, e.offsetY);
+    // console.log(rightclickedArea)
+    if(rightclickedArea.box !== -1){
+        annotation_box.forEach((item,cur_index)=>{
+            if(item.index == rightclickedArea.box){
+                annotation_box.splice(cur_index, 1)
+            }
+        });
+        // console.log(annotation_box)
+        //确保index和下标一一对应
+        annotation_box.forEach((item,cur_index)=>{
+            item.index = cur_index
+            allNotIn = item.index
+        });
+        allNotIn++;
+        drawonbox();
+        // 不传递
+        return false;
+    }
+    return false;
+    // console.log(annotation_box)
+}
 
 function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
     console.log('call newBox')
@@ -421,60 +516,68 @@ function findCurrentArea(x,y){
     //console.log('---=====',x,y)
     //console.log(layers)
     tmp_lineOffset = lineOffset * 3;
-    for (var item = 0; item < temp_checked_box.length; item++){
-         if (temp_checked_box[item].x1 - tmp_lineOffset < x && x < temp_checked_box[item].x1 + tmp_lineOffset) {
-             if (temp_checked_box[item].y1 - tmp_lineOffset < y && y < temp_checked_box [item].y1 + tmp_lineOffset) {
+    for (var item = 0; item < annotation_box.length; item++){
+         if (annotation_box[item].x1 - tmp_lineOffset < x && x < annotation_box[item].x1 + tmp_lineOffset) {
+             if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box [item].y1 + tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'nw'
                  };
              }
-             else if (temp_checked_box[item].y2 - tmp_lineOffset < y && y < temp_checked_box[item].y2 + tmp_lineOffset) {
+             else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'sw'
                  };
              }
-             else if (temp_checked_box[item].y1 + tmp_lineOffset < y && y < temp_checked_box[item].y2 - tmp_lineOffset) {
+             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'w'
                  };
              }
          }
-         else if(temp_checked_box[item].x2 - tmp_lineOffset < x && x < temp_checked_box[item].x2 + tmp_lineOffset){
-             if (temp_checked_box[item].y1 - tmp_lineOffset < y && y < temp_checked_box[item].y1 + tmp_lineOffset) {
+         else if(annotation_box[item].x2 - tmp_lineOffset < x && x < annotation_box[item].x2 + tmp_lineOffset){
+             if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'ne'
                  };
              }
-             else if (temp_checked_box[item].y2 - tmp_lineOffset < y && y < temp_checked_box[item].y2 + tmp_lineOffset) {
+             else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'se'
                  };
              }
-             else if (temp_checked_box[item].y1 + tmp_lineOffset < y && y < temp_checked_box[item].y2 - tmp_lineOffset) {
+             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'e'
                  };
              }
 
          }
-         else if (temp_checked_box[item].x1 + tmp_lineOffset < x && x < temp_checked_box[item].x2 - tmp_lineOffset) {
-             if (temp_checked_box[item].y1 - tmp_lineOffset < y && y < temp_checked_box[item].y1 + tmp_lineOffset) {
+         else if (annotation_box[item].x1 + tmp_lineOffset < x && x < annotation_box[item].x2 - tmp_lineOffset) {
+             if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 'n'
                  };
              }
-             else if (temp_checked_box[item].y2 - tmp_lineOffset < y && y < temp_checked_box[item].y2 + tmp_lineOffset) {
+             else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: temp_checked_box[item].index,
+                     box: annotation_box[item].index,
                      pos: 's'
                  };
+             }
+             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
+                 if (ctrl_key === 1) {
+                     return {
+                         box: annotation_box[item].index,
+                         pos: 'move'
+                     };
+                 }
              }
         }
     }
@@ -486,17 +589,114 @@ function findCurrentArea(x,y){
 
 
 
- $('#btn_save').click(function() {
-        var imagename = $("#image_id option:selected").text()
-        if(confirm('您确定要保存  <'+imagename+'>  的审核信息吗？')) {
-
-            user = document.getElementsByClassName("avatar");
-            user_name =  user[0].alt;
-            var time = new Date();
-            day = ("0" + time.getDate()).slice(-2);
-            month = ("0" + (time.getMonth() + 1)).slice(-2);
-            var today = time.getFullYear() + "-" + (month) + "-" + (day);
-            console.log(annotation_box,user_name,picNameStr,shootdate,today)
-            saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
+$('#btn_save').click(function() {
+    var imagename = $("#image_id option:selected").text()
+    if(confirm('您确定要保存  <'+imagename+'>  的审核信息吗？')) {
+        shootdate = $('#datetips').val()
+        console.log(typeof shootdate)
+        if(shootdate == ""){
+            layer.msg('拍片日期还未设置！')
+            return
         }
+        get_total_data(total_data)
+        // console.log(annotation_box)
+        // computecurrentbox()
+        // clear_and_redraw()
+        // drawonbox()
+        // console.log(annotation_box,user_name,picNameStr,shootdate,today)
+        saveReviewInfo(annotation_box,imagename,shootdate);
+    }
+});
+
+function saveReviewInfo(annotation_box,picNameStr,shootdate) {
+    annotation_box_json = JSON.stringify(annotation_box)
+    if(annotation_box_json == '{}'){
+        alert('没有标注信息！')
+        return
+    }
+    // console.log(annotation_box_json)
+     $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/admin/api/annotation/review/save?" + new Date(),
+        data: { 'ann_info':annotation_box_json, 'pic_name' : picNameStr, 'shoot_date':shootdate},
+        beforeSend: function() {},
+        success: function(result) {
+            layer.msg(result.message);
+            location.reload();
+
+        },
+        error: function() {}
+     });
+}
+
+
+function get_labels() {
+    $.ajax({
+        type: "GET",
+        dataType: "json",
+        url: "/api/annotation/labels?" + new Date(),
+        beforeSend: function() {},
+        success: function(result) {
+            if (result.message == '保存成功！') {
+                var html = '<span><b>标注类型</b></span><br/><br/><span></span><div class="form-group" id="ann" name="annotation">';
+                index = 0;
+                for (var i in result.data) {
+                    var id = 'region_' + result.data[i].name;
+                    var value = result.data[i].name;
+                    var text = result.data[i].desc;
+                    // 修改标注类型,默认选中第一个
+                    if (index == 0) {
+                        html += '<label class="radio-inline"><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '">';
+                    } else {
+                        html += '<label class="radio-inline"><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '">';
+                    }
+                    html += ' ' + text + '</label>';
+                    index++;
+                }
+                html += '</div>';
+                $('#annotation-type').html(html);
+            }
+        },
+        error: function() {}
     });
+}
+
+
+$('#annotation-type').click(function() {
+    // tooth_list = document.getElementsByClassName('check_box')
+    // target_tooth = []
+    // for(var i=0; i<tooth_list.length;i++){
+    //     if(tooth_list[i].checked){
+    //         target_tooth.push(tooth_list[i].id)
+    //     }
+    // }
+    // console.log(target_tooth)
+    // if(target_tooth.length > 1){
+    //     layer.msg('请勿同时勾选多个!')
+    //
+    // }
+    // else if(target_tooth.length == 1){
+    //     var regionClass = $('#ann input:checked').val();
+    //     var toothPosition = target_tooth[0]
+    //     updateRegionClass(regionClass,toothPosition);
+    // }
+    var regionClass = $('#ann input:checked').val();
+    var toothPosition = $('input[name="tooth"]:checked').val()
+    updateRegionClass(regionClass,toothPosition);
+    clear_and_redraw()
+    drawonbox();
+});
+
+
+function updateRegionClass(regionClass,toothPosition){
+    annotation_box.forEach(item=>{
+        if(item.toothPosition == toothPosition){
+            if(item.regionClass != regionClass){
+                item.regionClass = regionClass;
+                layer.msg('牙评分更新成功')
+                return ;
+            }
+        }
+    })
+}

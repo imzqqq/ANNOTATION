@@ -68,6 +68,45 @@
              }
          });
     }
+    $('#btn_export').click(function (){
+        user_name = $('#user_id option:selected').text()
+        if(user_name == '---请按标注用户进行筛选---'){
+            alert('请先选择用户！');
+        }
+        else{
+            alert('导出'+ user_name + '标注信息');
+            $.ajax({
+               type: "POST",
+               dataType: "json",
+               url: "{{ url_for('admin.export_annotation') }}",
+               data:{'username':user_name},
+               beforeSend:function (){},
+               success:function (result){
+                   if(result.code == 1){
+                       layer.msg('导出成功！点击下载')
+                        $('#export').attr('href','/admin/annotation/'+result.file_name)
+                   }
+                   else{
+                       $('#export').attr('href',null)
+                       layer.msg('暂无数据！')
+                   }
+
+               }
+            });
+
+        }
+    });
+
+    $('#user_id').click(function (){
+         $('#export').attr('href',null)
+    });
+
+    $('#btn_download').click(function (){
+        if($('#export').attr('href') == null){
+            layer.msg('请先导出数据！')
+        }
+    });
+
     </script>
 {% endblock %}
 
@@ -78,12 +117,19 @@
         {% if current_user.role != "secondary_annotator" %}
             <div>
                 <select  class="custom-select select-main" id="user_id" onchange="selectuser()">
-                  <option>---请按标注用户进行筛选---</option>
+                  <option disabled selected>---请按标注用户进行筛选---</option>
                   {% for ann_data in ann_lists %}
                       <option>{{ann_data[0]}}</option>
                   {% endfor %}
                 </select>
             </div>
+            <div style="text-align: left; margin-top: 15px;">
+                <button class="btn-info" id="btn_export" type="button">按用户导出</button>  ===>
+                <button class="btn-light" id = "btn_download">
+                    <a id="export"> | 下载</a>
+                </button>
+            </div>
+
             <div>
                 <select  class="custom-select select-main" id="image_id" onchange="selectuser_to_pic('have_user_select')">
                   <option>---选择标注图片---</option>
@@ -102,7 +148,7 @@
             <br/>
         {% endif %}
 
-        <div class="index img-main">
+        <div class="index img-watch">
             <canvas id="canvas_for_watch"></canvas>
         </div>
         <div class="col-12 image" style="display:none;">

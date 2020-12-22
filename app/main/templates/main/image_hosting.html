@@ -134,7 +134,9 @@
         <input type="file" hidden id="img-file" multiple accept="image/*"/>
         <img id="selectImg" src="{{ url_for('.static', filename='pictures/upload_img.svg')}}" class="rounded float-left" alt="请选择图片">
         <div>
-            <button id="upload-btn" class="btn btn-primary p-2">从本机选择图片</button>
+             {% if current_user.role != "secondary_annotator"  %}
+                <button id="upload-btn" class="btn btn-primary p-2">从本机选择图片</button>
+            {% endif %}
             <button id="ok" class="btn btn-primary p-2 m-2">确定添加</button>
         </div>
     </div>

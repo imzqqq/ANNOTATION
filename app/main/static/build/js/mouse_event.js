@@ -13,10 +13,12 @@ var startx,//起始x坐标
     allNotIn = 0;
 
 var annotation_box=[];//图层
+var review_box = []
 var scale = 1
 
 var box_color="#00ff00"
 var label_color = "#ff0000";
+var review_color = "blue"
 
 var clickedArea = {
   box: -1,
@@ -86,20 +88,98 @@ function reloadAnnotationBox(){
                 layer.msg(result.msg);
                 if(result.code === 1){
                      // 恢复拍片日期
-                    $('#shootingDate').val(result.shoot_date);
-                    var getDataArray = result.annotation_box
-                    annotation_box = JSON.parse(getDataArray)
-                    // console.log(annotation_box)
-                    computereloadbox();
-                    reloadtoothstatus();
-                    allNotIn++;
-                    drawonbox();
+                    if(result.role != 'secondary_annotator'){
+                        $('#shootingDate').val(result.shoot_date);
+                        var getDataArray = result.annotation_box
+                        annotation_box = JSON.parse(getDataArray)
+                        // console.log(annotation_box)
+                        computereloadbox();
+                        reloadtoothstatus();
+                        allNotIn++;
+                        drawonbox();
+                    }
+                    else{
+                        var getDataArray = result.annotation_box
+                        review_box = JSON.parse(getDataArray)
+                        review_box.forEach(item=>{
+                            // item.x1 = Math.round(item.realx1 * scale)
+                            // item.y1 = Math.round(item.realy1 * scale)
+                            // item.x2 = Math.round(item.realx2 * scale)
+                            // item.y2 = Math.round(item.realy2 * scale)
+                            item.x1 = item.realx1 * scale
+                            item.y1 = item.realy1 * scale
+                            item.x2 = item.realx2 * scale
+                            item.y2 = item.realy2 * scale
+                            item.width = item.realwidth * scale
+                            item.height = item.realheight * scale
+                        });
+                        review_box.forEach(item=>{
+                            var tooth_status = document.getElementsByName(item.toothPosition)[0]
+                             tooth_status.style.background = 'green';
+                        });
+                        mirror_class();
+                        drawonReviewbox();
+                    }
                 }
                 // console.log(result.tooth_list)
                 //draw(result.coordinate_list, result.tooth_list, result.class_list, obj.img_resolution_w , obj.img_resolution_h);
             },
             error: function() {}
         });
+    });
+}
+var tooth_to_class = {};
+function mirror_class(){
+    console.log('zhixig')
+    var parent_btn = document.querySelector('.mirror')
+
+    let mirror_btn = document.createElement('button')
+    mirror_btn.id = "thumbnail-mirror-btn"
+    mirror_btn.type = "button"
+    mirror_btn.className= "btn-dark"
+    mirror_btn.innerText = "镜像分类"
+    parent_btn.appendChild(mirror_btn)
+
+    $('#thumbnail-mirror-btn').click( function (){
+        review_box.forEach(item=>{
+            console.log(typeof item.toothPosition)
+                tooth_to_class[item.toothPosition] = item.regionClass
+            }
+        );
+        console.log(tooth_to_class)
+
+        annotation_box.forEach(item=>{
+            if(parseInt(item.toothPosition) < 19){
+                target_tooth_position = parseInt(item.toothPosition) + parseInt('10')
+            }
+            else{
+                target_tooth_position = parseInt(item.toothPosition) - parseInt('10')
+            }
+            console.log(target_tooth_position)
+            console.log(tooth_to_class[target_tooth_position])
+                item.regionClass = tooth_to_class[target_tooth_position]
+            }
+        );
+        drawpicture();
+        drawonReviewbox();
+        drawonbox();
+
+    });
+
+
+}
+function drawonReviewbox(){
+    review_box.forEach(item=>{
+        context.beginPath();
+        item = fixPosition(item)
+        context.strokeStyle = review_color
+        context.strokeRect(item.x1,item.y1,item.width,item.height)
+
+        context.font = "15px Normal"
+        context.fillStyle = label_color
+        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        // context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
+        // context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
     });
 }
 
@@ -112,6 +192,7 @@ $('#annotation-type').click(function() {
     }
     context.clearRect(0,0,canvas_item.width,canvas_item.height)
     drawpicture();
+    drawonReviewbox();
     drawonbox();
     // $(document).focus();
 });
@@ -133,13 +214,16 @@ function updateRegionClass(regionClass,toothPosition){
 
 function initPage(obj){
     loadSamplePic(obj);
-    $('#btn_save').click(function() {
-        if(JSON.stringify(annotation_box) == '[]'){
-            layer.msg('还未标注任何数据！')
-            return ;
-        }
-        picNameStr = $('#cur_id').html();
-        //if(confirm('您确定要保存  <'+picNameStr+'>  的标注信息吗？')) {
+}
+
+$('#btn_save').click(function() {
+    if(JSON.stringify(annotation_box) == '[]'){
+        layer.msg('还未标注任何数据！')
+        return ;
+    }
+    picNameStr = $('#cur_id').html();
+    if(confirm('您确定要保存  <'+picNameStr+'>  的标注信息吗？')) {
+        if(review_box == []){
             shootdate = document.querySelector('input[type="date"]').value;
             user = document.getElementsByClassName("avatar");
             user_name =  user[0].alt;
@@ -149,9 +233,21 @@ function initPage(obj){
             var today = time.getFullYear() + "-" + (month) + "-" + (day);
             //console.log(annotation_box,user_name,picNameStr,shootdate,today)
             saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
-        //}
-    });
-}
+        }
+        else{
+            //console.log(annotation_box,user_name,picNameStr,shootdate,today)
+            //saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
+            review_index = review_box.length
+            annotation_box.forEach(item=>{
+                item.mark = 'mirror'
+                item.index = review_index
+                review_index++;
+                review_box.push(item)
+            });
+            saveReviewInfo(review_box,picNameStr);
+        }
+    }
+});
 
 function containImg(box_w,box_h,source_w,source_h){
     var ratio = 1;
@@ -273,6 +369,25 @@ function saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today) {
     });
 }
 
+function saveReviewInfo(review_box,picNameStr) {
+    review_box_json = JSON.stringify(review_box)
+    if(review_box_json == '{}'){
+        alert('没有标注信息！')
+        return
+    }
+    // console.log(annotation_box_json)
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/api/annotation/save/review?" + new Date(),
+        data: { 'review_info':review_box_json, 'pic_name' : picNameStr},
+        beforeSend: function() {},
+        success: function(result) {
+            layer.msg(result.message);
+        },
+        error: function() {}
+    });
+}
 
 function drawpicture(){
     var new_img = document.getElementById('source')
@@ -418,6 +533,7 @@ document.getElementById('canvas').onmousemove = function (e){
     if(mousedown  && clickedArea.box === -1)
     {
         context.strokeRect(startx,starty,e.offsetX-startx,e.offsetY-starty)
+        drawonReviewbox();
         drawonbox();
     }
         //把之前的画上
@@ -458,10 +574,12 @@ document.getElementById('canvas').onmousemove = function (e){
             annotation_box[clickedArea.box].y2 += yOffset;
             annotation_box[clickedArea.box].realy2 = annotation_box[clickedArea.box].y2 / scale;
           }
+          drawonReviewbox();
           drawonbox();
     }
 
     else if (!mousedown) {
+        drawonReviewbox();
         drawonbox();
         //console.log('move :', e.offsetX, e.offsetY)
         tmp_cursor = findCurrentArea(e.offsetX, e.offsetY)
@@ -526,10 +644,12 @@ document.getElementById('canvas').onmouseup = function (e){
             }
             current_tooth.style.background = 'green';
             updateToothRadio();
+            drawonReviewbox();
             drawonbox();
         }
     }
     else if(mousedown && clickedArea.box !== -1){
+        drawonReviewbox();
         drawonbox()
     }
     // console.log(annotation_box)
@@ -565,6 +685,7 @@ document.getElementById('canvas').oncontextmenu = function (e){
             });
             allNotIn++;
         }
+        drawonReviewbox();
         drawonbox();
         return false;
     }
@@ -708,22 +829,33 @@ function get_labels() {
             if (result.message == '保存成功！') {
                 var html = '<span><b>标注类型</b></span><br/><br/><span></span><div class="form-group" id="ann" name="annotation">';
                 index = 0;
-                for (var i in result.data) {
-                    var id = 'region_' + result.data[i].name;
-                    var value = result.data[i].name;
-                    var text = result.data[i].desc;
-                    // 修改标注类型,默认选中第一个
-                    if (index == 0) {
-                        html += '<label class="radio-inline"><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '">';
-                    } else {
-                        html += '<label class="radio-inline"><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '">';
+                if(result.role == 'other'){
+                    for (var i in result.data) {
+                        var id = 'region_' + result.data[i].name;
+                        var value = result.data[i].name;
+                        var text = result.data[i].desc;
+                        // 修改标注类型,默认选中第一个
+                        if (index == 0) {
+                            html += '<label class="radio-inline"><input type="radio" checked name="annotation-item" id="' + id + '" value="' + value + '">';
+                        } else {
+                            html += '<label class="radio-inline"><input type="radio" name="annotation-item" id="' + id + '" value="' + value + '">';
+                        }
+                        html += ' ' + text + '</label>';
+                        index++;
                     }
-                    html += ' ' + text + '</label>';
-                    index++;
+                    html += '</div>';
+                    $('#annotation-type').html(html);
                 }
-                html += '</div>';
-                $('#annotation-type').html(html);
+                else{
+                    html += '<label class="radio-inline"><input type="radio" checked name="annotation-item" id="region_NaN" value="NAN">';
+                    html += ' ' + 'NAN' + '</label>';
+                    html += '</div>';
+                    $('#annotation-type').html(html);
+                }
+
             }
+
+
         },
         error: function() {}
     });

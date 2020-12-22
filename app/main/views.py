@@ -3,10 +3,10 @@ from flask import render_template, redirect, request, current_app, url_for, g,\
      send_from_directory, abort, flash, Flask, make_response, jsonify, send_file, session
 from flask_login import login_user, logout_user, login_required, current_user
 from . import main
-from app.models import User, InvitationCode, Picture, Annotation
+from app.models import User, InvitationCode, Picture, Annotation, Review_Annotation
 from .forms import LoginForm, RegistForm, PasswordForm, InviteRegistForm
 from app.extensions import db
-from app.tool import get_bing_img_url,resize_image
+from app.tool import get_bing_img_url, resize_image
 from sqlalchemy.sql import and_ , or_
 import datetime
 import codecs
@@ -222,13 +222,25 @@ def image_hosting():
     """
     图床
     """
-    page = request.args.get('page', 1, type=int)
-    imgs = Picture.query.order_by(Picture.id.desc()).paginate(
-        page, per_page=8, error_out=False)
-    # 表连接
-    user_to_pic = Annotation.query.all()
-    # img_annlist = Annotation.query.join(Picture).all()
-    return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
+    if (current_user.role != 'secondary_annotator'):
+        page = request.args.get('page', 1, type=int)
+        imgs = Picture.query.order_by(Picture.id.desc()).paginate(
+            page, per_page=8, error_out=False)
+        # 表连接
+        user_to_pic = Annotation.query.all()
+        # img_annlist = Annotation.query.join(Picture).all()
+        return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
+    else:
+        page = request.args.get('page', 1, type=int)
+        img_annlist = Picture.query.join(Review_Annotation).paginate(
+             page, per_page=8, error_out=False)
+        # print(img_annlist)
+        # imgs = Picture.query.order_by(Picture.id.desc()).paginate(
+        #     page, per_page=8, error_out=False)
+        # 表连接
+        # img_annlist = Annotation.query.join(Picture).all()
+        return render_template('image_hosting.html', imgs=img_annlist)
+
 
 
 @main.route('/upload_query', methods=['POST'])
@@ -351,6 +363,10 @@ def get_labels():
     result = dict()
     result['message'] = '保存成功！'
     result['data'] = label_json
+    if(current_user.role == 'secondary_annotator'):
+        result['role'] = 'secondary_annotator'
+    else:
+        result['role'] = 'other'
     return jsonify(result)
 
 
@@ -403,28 +419,59 @@ def save_annotation():
     result['message'] = '保存成功！'
     return jsonify(result)
 
+# 标注保存接口
+@main.route('/api/annotation/save/review', methods=['POST'])
+def save_review_annotation():
+    print('正在保存')
+    review_info = request.form['review_info']
+    pic_name = request.form['pic_name']
+
+    # print(ann_info)
+    # print('------', shoot_date)
+
+
+    review_query = Review_Annotation.query.filter_by(ImageName=pic_name).first()
+
+    review_query.Tooth_Annotation_Info = review_info
+    db.session.commit()
+    result = dict()
+    result['message'] = '保存成功！'
+    return jsonify(result)
 
 # 标注载入接口
 @main.route('/api/annotation/reload', methods=['POST'])
 def reload_annotation():
     user_name = request.form['user']
     pic_name = request.form['pic_name']
-
-    ann_data = Annotation.query.filter_by(ImageName=pic_name, User=user_name).first()
-    if ann_data is None:
-        result = {
-            'code': 0,
-            'msg': u'未查询到标注数据!'
-        }
+    if (current_user.role != 'secondary_annotator'):
+        ann_data = Annotation.query.filter_by(ImageName=pic_name, User=user_name).first()
+        if ann_data is None:
+            result = {
+                'code': 0,
+                'msg': u'未查询到标注数据!'
+            }
+        else:
+            annotation_box = ann_data.Tooth_Annotation_Info
+            shoot_date = ann_data.ShootDate
+            # print('---', shoot_date)
+            result = {
+                'code': 1,
+                'msg': u'载入成功！',
+                'annotation_box': annotation_box,
+                'shoot_date': shoot_date
+            }
+        return jsonify(result)
     else:
-        annotation_box = ann_data.Tooth_Annotation_Info
-        shoot_date = ann_data.ShootDate
+        review_data = Review_Annotation.query.filter_by(ImageName=pic_name).first()
+        annotation_box = review_data.Tooth_Annotation_Info
+        #shoot_date = review_data.ShootDate
         # print('---', shoot_date)
         result = {
             'code': 1,
             'msg': u'载入成功！',
             'annotation_box': annotation_box,
-            'shoot_date': shoot_date
+            'shoot_date': 'NAN',
+            'role': 'secondary_annotator'
         }
     return jsonify(result)
 

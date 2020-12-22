@@ -6,7 +6,7 @@ from . import admin
 from app.extensions import db, app_helper
 from .forms import AddAdminForm, LoginForm, AddUserForm, DeleteUserForm, EditUserForm, \
     ChangePasswordForm, AddFolderForm, InvitcodeForm, OnlineToolForm
-from app.models import User, AccessLog, InvitationCode, Picture, Annotation
+from app.models import User, AccessLog, InvitationCode, Picture, Annotation, Review_Annotation
 import os
 import datetime
 from datetime import timedelta
@@ -15,7 +15,7 @@ from app.config import config
 from sqlalchemy.sql import and_, or_
 from app.tool import get_bing_img_url
 from app.tool import resize_image, toExcel
-from app.tool import draw_pic, draw_pic_online, compare_annotation_info
+from app.tool import draw_pic, draw_pic_online, compare_annotation_info, get_labels, compute_tooth_age, export_toExcel, export_review_toExcel
 import json
 import threading
 import pandas as pd
@@ -293,6 +293,47 @@ def ann_data():
         flag = True
     return render_template('admin/annotation_data.html', flag=flag, ann_lists=ann_lists)
 
+@admin.route('review_data_query_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def review_data_query_user():
+    target = request.form['username']
+    review_ann_lists_by_user = Review_Annotation.query.filter_by(Reviewer=target).all()
+    image_list = []
+    if review_ann_lists_by_user != []:
+        for review_ann_lists in review_ann_lists_by_user:
+            image_list.append(review_ann_lists.ImageName)
+        res = {
+            'code': 1,
+            'image_list': image_list
+        }
+        return jsonify(res)
+
+@admin.route('review_data_query_user_to_image', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def review_data_query_user_to_image():
+    # username = request.form['username']
+    imagename = request.form['imagename']
+
+    # print('----', username)
+
+    imagename_result = Picture.query.filter_by(name=imagename).first()
+    image_url = imagename_result.url
+
+    # review_annotation_query = Review_Annotation.query.filter_by(Reviewer=username, ImageName=imagename).first()
+    review_annotation_query = Review_Annotation.query.filter_by(ImageName=imagename).first()
+    annotation_data = review_annotation_query.Tooth_Annotation_Info
+
+    res = {
+        'code': 1,
+        'msg': u'成功!',
+        'url': image_url,
+        'annotation_data': annotation_data
+    }
+    return jsonify(res)
+
+
 @admin.route('/annotation_data_query_user', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -331,17 +372,27 @@ def annotation_data_query_user_to_image():
     }
     return jsonify(res)
 
-
+# 审核图片返回接口，只返回没有审核的图片
 @admin.route('/review', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def review():
-    ann_data = Annotation.query.with_entities(Annotation.ImageName).distinct().all()
-    if ann_data == []:
+    # 标注数据
+    ann_data_list = Annotation.query.with_entities(Annotation.ImageName).distinct().all()
+    #审核数据
+    review_data_list = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+    # print('-----', ann_data_list[0][0])
+    # print(ann_data)
+    need_review_data_list = []
+    for ann_data in ann_data_list:
+        if ann_data not in review_data_list:
+            need_review_data_list.append(ann_data[0])
+    # print('---------', need_review_data_list)
+    if ann_data_list == []:
         flag = False
     else:
         flag = True
-    return render_template('admin/review.html', flag=flag, image_list=ann_data)
+    return render_template('admin/review.html', flag=flag, image_list=need_review_data_list)
 
 
 @admin.route('/review_query', methods=['GET', 'POST'])
@@ -363,7 +414,7 @@ def review_query():
         tooth_age[ann_item.User] = ann_item.ShootDate
         tooth_info[ann_item.User] = json.loads(ann_item.Tooth_Annotation_Info)
     for user, ann_info in tooth_info.items():
-        print('------', type(ann_info))
+        # print('------', type(ann_info))
         for tooth_info_items in ann_info:
             tooth_info_distinguish_user = dict()  # 用户标注项目
             tooth_info_distinguish_user[user] = tooth_info_items
@@ -376,7 +427,7 @@ def review_query():
             else:
                 tooth_info_classify_user.append(tooth_info_distinguish_user)
                 tooth_info_key_tooth_user[tooth_info_items['toothPosition']] = tooth_info_classify_user
-    print('tooth_list_key_by_user ', tooth_info_key_tooth_user)
+    #('tooth_list_key_by_user ', tooth_info_key_tooth_user)
     confirm_annotation_list = compare_annotation_info(tooth_info_key_tooth_user)
     result = {
         'code': 1,
@@ -393,7 +444,14 @@ def review_query():
 @admin_required
 @login_required
 def review_data():
-    return render_template('admin/ann_list.html')
+    # ann_lists = Review_Annotation.query.with_entities(Review_Annotation.Reviewer).distinct().all()
+    ann_lists = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+    if ann_lists == []:
+        flag = False
+    else:
+        flag = True
+    return render_template('admin/review_data.html', flag=flag, ann_lists=ann_lists)
+
 
 
 @admin.route('/ann_list', methods=['GET', 'POST'])
@@ -409,6 +467,32 @@ def ann_list():
     else:
         ann_lists = Annotation.query.filter_by(user=current_user_name).all()
     return render_template('admin/ann_list.html', ann_lists=ann_lists)
+
+# 导出，返回href的链接
+@admin.route('/export', methods=['GET', 'POST'])
+@login_required
+def export_annotation():
+    target = request.form['username']
+    all_ann_lists = Annotation.query.filter_by(User=target).all()
+
+    if all_ann_lists != []:
+        file_name = export_toExcel(all_ann_lists)
+        res = {
+            'code': 1,
+            'file_name': file_name,
+        }
+        #return send_from_directory(current_app.config['MILAB_ANNOTATION_PATH'], filename=file_name, as_attachment=True)
+    else:
+        res = {
+            'code': 0,
+            'msg': '没有数据',
+        }
+    return jsonify(res)
+
+# 提供下载
+@admin.route('/annotation/<path:filename>')
+def get_annotation(filename):
+    return send_from_directory(current_app.config['MILAB_ANNOTATION_PATH'], filename)
 
 @admin.route('/ann_list_u_query', methods=['GET', 'POST'])
 @login_required
@@ -466,12 +550,19 @@ def ann_list_u():
 @login_required
 @admin_required
 def return_files(file_url):
-    excel_name = toExcel(file_url)
-    print("\n-----file_url : ", file_url)
-    print("\n-----excel_name : ", excel_name)
+    # excel_name = toExcel(file_url)
+    # print("\n-----file_url : ", file_url)
+    # print("\n-----excel_name : ", excel_name)
+    # try:
+    #     # must set param cache_timeout
+    #     return send_from_directory(current_app.config['MILAB_ANNOTATION_PATH'], filename=excel_name, as_attachment=True)
+    # except Exception as e:
+    #     print("\n-----e : ", e)
+    #     return str(e)
+    export_review_toExcel()
     try:
         # must set param cache_timeout
-        return send_from_directory(current_app.config['MILAB_ANNOTATION_PATH'], filename=excel_name, as_attachment=True)
+        return send_from_directory(current_app.config['MILAB_ANNOTATION_PATH'], filename=file_url, as_attachment=True)
     except Exception as e:
         print("\n-----e : ", e)
         return str(e)
@@ -521,3 +612,44 @@ def add_data(obj):
 def get_audit_image(filename):
     # print(current_app.config['MILAB_AUDIT_PATH'])
     return send_from_directory(current_app.config['MILAB_AUDIT_PATH'], filename)
+
+
+# 读取类别标签
+@admin.route('/api/annotation/labels', methods=['GET'])
+def get_labels():
+    #label字典
+    # print('读取------------')
+    label_json = get_labels()
+    result = dict()
+    result['message'] = '保存成功！'
+    result['data'] = label_json
+    return jsonify(result)
+
+# 保存审核数据
+@admin.route('/api/annotation/review/save', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def review_save():
+    print('正在保存')
+    ann_info = request.form['ann_info']
+    user_name = current_user.username
+    pic_name = request.form['pic_name']
+    shoot_date = request.form['shoot_date']
+    # print(ann_info)
+    # print('------', shoot_date)
+
+    tooth_age = compute_tooth_age(pic_name, shoot_date)
+
+    review_query = Review_Annotation.query.filter_by(ImageName=pic_name, Reviewer=user_name).first()
+    if review_query is None:
+        new_review_item = Review_Annotation(ImageName=pic_name, Reviewer=user_name,
+                                            Tooth_Annotation_Info=ann_info, Tooth_Age=tooth_age)
+        db.session.add(new_review_item)
+        db.session.commit()
+    else:
+        review_query.Tooth_Annotation_Info = ann_info
+        review_query.Tooth_Age = tooth_age
+        db.session.commit()
+    result = dict()
+    result['message'] = '保存成功！'
+    return jsonify(result)

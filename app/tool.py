@@ -18,7 +18,7 @@ import logging
 import PIL
 from PIL import Image
 import cv2
-from app.models import Picture
+from app.models import Picture, Annotation, Review_Annotation
 
 
 def admin_required(func):
@@ -543,6 +543,246 @@ def toExcel(path_annotation):
     return path_name + '.xlsx'
 
 
+def export_toExcel(all_ann_info):
+    result_list = []
+    index = 1
+    for ann_info in all_ann_info:
+        info_item = dict()
+        info_item['id'] = index
+        info_item['file_name'] = ann_info.ImageName
+        info_item['annotation_date'] = ann_info.AnnotationDate
+        info_item['shoot_date'] = ann_info.ShootDate
+        info_item['annotation_user'] = ann_info.User
+        info_item['tooth_age'] = ann_info.Tooth_Age
+        tooth_class = json.loads(ann_info.Tooth_Annotation_Info)
+        tooth_list = []
+
+        # 处理名字
+        name_without_suffix = ann_info.ImageName.split('.')[0]
+        re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", name_without_suffix)
+        re_item_sex = ''.join(re.findall(r'[A-Za-z]', name_without_suffix))
+        re_item_number = re.sub("\D", "", name_without_suffix)
+
+        re_item_year = re_item_number[0:4]
+        re_item_month = re_item_number[4:6]
+        re_item_day = re_item_number[6:8]
+
+        info_item['patient_name'] = re_item_name
+        info_item['sex'] = re_item_sex
+
+
+        for tooth_class_item in tooth_class:
+            # print(tooth_class_item)
+            tooth_list.append(str(tooth_class_item['toothPosition']))
+            # print(tooth_list)
+            # print(tooth_class_item['regionClass'])
+            info_item[str(tooth_class_item['toothPosition'])] = tooth_class_item['regionClass'].replace(" ", "")
+
+        if ('18' not in tooth_list):
+            info_item['18'] = 'NaN'
+        if ('17' not in tooth_list):
+            info_item['17'] = 'NaN'
+        if ('16' not in tooth_list):
+            info_item['16'] = 'NaN'
+        if ('15' not in tooth_list):
+            info_item['15'] = 'NaN'
+        if ('14' not in tooth_list):
+            info_item['14'] = 'NaN'
+        if ('13' not in tooth_list):
+            info_item['13'] = 'NaN'
+        if ('12' not in tooth_list):
+            info_item['12'] = 'NaN'
+        if ('11' not in tooth_list):
+            info_item['11'] = 'NaN'
+        if ('21' not in tooth_list):
+            info_item['21'] = 'NaN'
+        if ('22' not in tooth_list):
+            info_item['22'] = 'NaN'
+        if ('23' not in tooth_list):
+            info_item['23'] = 'NaN'
+        if ('24' not in tooth_list):
+            info_item['24'] = 'NaN'
+        if ('25' not in tooth_list):
+            info_item['25'] = 'NaN'
+        if ('26' not in tooth_list):
+            info_item['26'] = 'NaN'
+        if ('27' not in tooth_list):
+            info_item['27'] = 'NaN'
+        if ('28' not in tooth_list):
+            info_item['28'] = 'NaN'
+        if ('48' not in tooth_list):
+            info_item['48'] = 'NaN'
+        if ('47' not in tooth_list):
+            info_item['47'] = 'NaN'
+        if ('46' not in tooth_list):
+            info_item['46'] = 'NaN'
+        if ('45' not in tooth_list):
+            info_item['45'] = 'NaN'
+        if ('44' not in tooth_list):
+            info_item['44'] = 'NaN'
+        if ('43' not in tooth_list):
+            info_item['43'] = 'NaN'
+        if ('42' not in tooth_list):
+            info_item['42'] = 'NaN'
+        if ('41' not in tooth_list):
+            info_item['41'] = 'NaN'
+        if ('31' not in tooth_list):
+            info_item['31'] = 'NaN'
+        if ('32' not in tooth_list):
+            info_item['32'] = 'NaN'
+        if ('33' not in tooth_list):
+            info_item['33'] = 'NaN'
+        if ('34' not in tooth_list):
+            info_item['34'] = 'NaN'
+        if ('35' not in tooth_list):
+            info_item['35'] = 'NaN'
+        if ('36' not in tooth_list):
+            info_item['36'] = 'NaN'
+        if ('37' not in tooth_list):
+            info_item['37'] = 'NaN'
+        if ('38' not in tooth_list):
+            info_item['38'] = 'NaN'
+
+        result_list.append(info_item)
+        index = index + 1
+
+
+    pf = pd.DataFrame(result_list)
+    order = ['id', 'file_name',  "patient_name", 'sex', 'annotation_user', 'annotation_date', 'shoot_date', 'tooth_age',
+             '18', '17', '16', '15', '14', '13', '12', '11',
+             '21', '22', '23', '24', '25', '26', '27', '28',
+             '48', '47', '46', '45', '44', '43', '42', '41',
+             '31', '32', '33', '34', '35', '36', '37', '38']
+    pf = pf[order]
+    path_name = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    file_path = pd.ExcelWriter('annotation/' + path_name + '.xlsx')  # 打开excel文件
+    # 替换空单元格
+    pf.fillna(' ', inplace=True)
+    # 输出
+    pf.to_excel(file_path, encoding='utf-8', index=False, sheet_name="sheet1")
+    file_path.save()
+    return path_name + '.xlsx'
+
+
+def export_review_toExcel():
+    all_ann_info = Review_Annotation.query.all()
+    result_list = []
+    index = 1
+    for ann_info in all_ann_info:
+        info_item = dict()
+        info_item['id'] = index
+        info_item['file_name'] = ann_info.ImageName
+        info_item['tooth_age'] = ann_info.Tooth_Age
+        tooth_class = json.loads(ann_info.Tooth_Annotation_Info)
+        tooth_list = []
+
+        # 处理名字
+        name_without_suffix = ann_info.ImageName.split('.')[0]
+        re_item_name = re.sub("[A-Za-z0-9\!\%\[\]\,\.\-]", "", name_without_suffix)
+        re_item_sex = ''.join(re.findall(r'[A-Za-z]', name_without_suffix))
+        re_item_number = re.sub("\D", "", name_without_suffix)
+
+        re_item_year = re_item_number[0:4]
+        re_item_month = re_item_number[4:6]
+        re_item_day = re_item_number[6:8]
+
+        info_item['patient_name'] = re_item_name
+        info_item['sex'] = re_item_sex
+
+
+        for tooth_class_item in tooth_class:
+            # print(tooth_class_item)
+            tooth_list.append(str(tooth_class_item['toothPosition']))
+            # print(tooth_list)
+            # print(tooth_class_item['regionClass'])
+            info_item[str(tooth_class_item['toothPosition'])] = tooth_class_item['regionClass'].replace(" ", "")
+
+        if ('18' not in tooth_list):
+            info_item['18'] = 'NaN'
+        if ('17' not in tooth_list):
+            info_item['17'] = 'NaN'
+        if ('16' not in tooth_list):
+            info_item['16'] = 'NaN'
+        if ('15' not in tooth_list):
+            info_item['15'] = 'NaN'
+        if ('14' not in tooth_list):
+            info_item['14'] = 'NaN'
+        if ('13' not in tooth_list):
+            info_item['13'] = 'NaN'
+        if ('12' not in tooth_list):
+            info_item['12'] = 'NaN'
+        if ('11' not in tooth_list):
+            info_item['11'] = 'NaN'
+        if ('21' not in tooth_list):
+            info_item['21'] = 'NaN'
+        if ('22' not in tooth_list):
+            info_item['22'] = 'NaN'
+        if ('23' not in tooth_list):
+            info_item['23'] = 'NaN'
+        if ('24' not in tooth_list):
+            info_item['24'] = 'NaN'
+        if ('25' not in tooth_list):
+            info_item['25'] = 'NaN'
+        if ('26' not in tooth_list):
+            info_item['26'] = 'NaN'
+        if ('27' not in tooth_list):
+            info_item['27'] = 'NaN'
+        if ('28' not in tooth_list):
+            info_item['28'] = 'NaN'
+        if ('48' not in tooth_list):
+            info_item['48'] = 'NaN'
+        if ('47' not in tooth_list):
+            info_item['47'] = 'NaN'
+        if ('46' not in tooth_list):
+            info_item['46'] = 'NaN'
+        if ('45' not in tooth_list):
+            info_item['45'] = 'NaN'
+        if ('44' not in tooth_list):
+            info_item['44'] = 'NaN'
+        if ('43' not in tooth_list):
+            info_item['43'] = 'NaN'
+        if ('42' not in tooth_list):
+            info_item['42'] = 'NaN'
+        if ('41' not in tooth_list):
+            info_item['41'] = 'NaN'
+        if ('31' not in tooth_list):
+            info_item['31'] = 'NaN'
+        if ('32' not in tooth_list):
+            info_item['32'] = 'NaN'
+        if ('33' not in tooth_list):
+            info_item['33'] = 'NaN'
+        if ('34' not in tooth_list):
+            info_item['34'] = 'NaN'
+        if ('35' not in tooth_list):
+            info_item['35'] = 'NaN'
+        if ('36' not in tooth_list):
+            info_item['36'] = 'NaN'
+        if ('37' not in tooth_list):
+            info_item['37'] = 'NaN'
+        if ('38' not in tooth_list):
+            info_item['38'] = 'NaN'
+
+        result_list.append(info_item)
+        index = index + 1
+
+
+    pf = pd.DataFrame(result_list)
+    order = ['id', 'file_name',  "patient_name", 'sex', 'tooth_age',
+             '18', '17', '16', '15', '14', '13', '12', '11',
+             '21', '22', '23', '24', '25', '26', '27', '28',
+             '48', '47', '46', '45', '44', '43', '42', '41',
+             '31', '32', '33', '34', '35', '36', '37', '38']
+    pf = pf[order]
+    path_name = 'review'
+    file_path = pd.ExcelWriter('annotation/' + path_name + '.xlsx')  # 打开excel文件
+    # 替换空单元格
+    pf.fillna(' ', inplace=True)
+    # 输出
+    pf.to_excel(file_path, encoding='utf-8', index=False, sheet_name="sheet1")
+    file_path.save()
+    # return 'review.xlsx'
+
+
 def resize_image(image, filename, base_width):
     """[优化图片存储]
 
@@ -585,29 +825,6 @@ class Annotation_item():
         self.annotationUser = user
 
 
-# def compute_iou(annotation_item1, annotation_item2):
-#     print(annotation_item2.xmax)
-#     print(annotation_item1.xmax)
-#     # computing area of each rectangles
-#     S_rec1 = (annotation_item1.xmax - annotation_item1.xmin) * (annotation_item1.ymax - annotation_item1.ymin)
-#     S_rec2 = (annotation_item2.xmax - annotation_item2.xmin) * (annotation_item2.ymax - annotation_item2.ymin)
-#
-#     # computing the sum_area
-#     sum_area = S_rec1 + S_rec2
-#
-#     # find the each edge of intersect rectangle
-#     left_line = max(annotation_item1.xmin, annotation_item2.xmin)
-#     right_line = min(annotation_item1.xmax, annotation_item2.xmax)
-#     top_line = max(annotation_item1.ymin, annotation_item2.ymin)
-#     bottom_line = min(annotation_item1.ymax, annotation_item2.ymax)
-#
-#     # judge if there is an intersect
-#     if left_line >= right_line or top_line >= bottom_line:
-#         return 0
-#     else:
-#         intersect = (right_line - left_line) * (bottom_line - top_line)
-#         # print(intersect, sum_area, intersect)
-#         return (intersect / (sum_area - intersect)) * 1.0
 
 
 def compute_iou(annotation_item1, annotation_item2):
@@ -637,35 +854,31 @@ def compute_iou(annotation_item1, annotation_item2):
 def judge_iou(annotation_item_list):
     for i in range(len(annotation_item_list)):
         for j in range(i, len(annotation_item_list)):
-            print(i, j)
             iou = compute_iou(annotation_item_list[i], annotation_item_list[j])
-            print(iou)
             threshold = 0.5
             if iou < threshold:
                 return False
 
     return True
 
-
+# review_flag  为false,需要审核，否则，为true表示已经审核通过
 def compare_annotation_info(tooth_info_key_tooth_user):
     confirm_annotation_list = dict()
     annotation_item_list = []
     for tooth_position, ann_info_list_user in tooth_info_key_tooth_user.items():
         annotation_item_list = []
         for ann_info_user in ann_info_list_user:
-            print(ann_info_user)
+            # print(ann_info_user)
             for user, ann_info in ann_info_user.items():
                 ann_info['annotationUser'] = user
                 ann_info['review_flag'] = False
                 annotation_item_list.append(ann_info)
                     # Annotation_item(ann_info['realx1'], ann_info['realy1'], ann_info['realx2'], ann_info['realy2'],
                     #                 ann_info['regionClass'], user))
-        print(annotation_item_list)
+        # print(annotation_item_list)
         class_list = []
         ann_user = ""
-        print(judge_iou(annotation_item_list))
         if(judge_iou(annotation_item_list)):
-            print('执行')
             sum_xmin = sum_xmax = sum_ymin = sum_ymax = 0
             for annotation_item in annotation_item_list:
                 class_list.append(annotation_item['regionClass'])
@@ -689,7 +902,11 @@ def compare_annotation_info(tooth_info_key_tooth_user):
                     total_class += ',' + class_list[i]
                     merge_dict['review_flag'] = False
             else:
-                merge_dict['review_flag'] = True
+                # 只有一个人标
+                if(len(class_list) == 1):
+                    merge_dict['review_flag'] = False
+                else:
+                    merge_dict['review_flag'] = True
 
 
             merge_dict['realx1'] = avg_xmin
@@ -708,18 +925,18 @@ def compare_annotation_info(tooth_info_key_tooth_user):
             total_class = class_list[0]
             # 有不同的
             cannot_merge_dict = dict()
-            cannot_merge_dict['review_flag'] = False
+            cannot_merge_dict['review_flag'] = True
             cannot_merge_dict['merge'] = False
             if len(set(class_list)) != 1:
                 for i in range(1, len(class_list)):
                     total_class += ',' + class_list[i]
 
-            cannot_merge_dict['ann_list'] = annotation_item_list
+            # cannot_merge_dict['ann_list'] = annotation_item_list
             cannot_merge_dict['regionClass'] = total_class
             cannot_merge_dict['toothPosition'] = tooth_position
             cannot_merge_dict['annotationUser'] = ann_user
             confirm_annotation_list[tooth_position] = cannot_merge_dict
-    print(confirm_annotation_list)
+    # print(confirm_annotation_list)
     return confirm_annotation_list
 
 def draw_pic(image_name, user):
