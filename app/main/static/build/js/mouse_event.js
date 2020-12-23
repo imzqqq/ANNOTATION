@@ -53,6 +53,7 @@ function updateImageDisplay(obj){
     ctrl_key = 0
     initToothStatus();
     annotation_box = []
+    review_box = []
     scale = 1;
     allNotIn = 0;
     mousedown = 0;
@@ -223,7 +224,8 @@ $('#btn_save').click(function() {
     }
     picNameStr = $('#cur_id').html();
     if(confirm('您确定要保存  <'+picNameStr+'>  的标注信息吗？')) {
-        if(review_box == []){
+        if(JSON.stringify(review_box) == '[]')
+        {
             shootdate = document.querySelector('input[type="date"]').value;
             user = document.getElementsByClassName("avatar");
             user_name =  user[0].alt;
