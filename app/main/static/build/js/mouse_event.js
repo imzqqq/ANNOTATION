@@ -151,7 +151,7 @@ function mirror_class(){
                 tooth_to_class[item.toothPosition] = item.regionClass
             }
         );
-        console.log(tooth_to_class)
+        //console.log(tooth_to_class)
 
         annotation_box.forEach(item=>{
             if(parseInt(item.toothPosition) < 19){
