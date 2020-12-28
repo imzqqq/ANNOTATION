@@ -411,19 +411,22 @@ function findCurrentArea(x,y){
          if (annotation_box[item].x1 - tmp_lineOffset < x && x < annotation_box[item].x1 + tmp_lineOffset) {
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box [item].y1 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'nw'
                  };
              }
              else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'sw'
                  };
              }
              else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'w'
                  };
              }
@@ -431,19 +434,22 @@ function findCurrentArea(x,y){
          else if(annotation_box[item].x2 - tmp_lineOffset < x && x < annotation_box[item].x2 + tmp_lineOffset){
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'ne'
                  };
              }
              else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'se'
                  };
              }
              else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'e'
                  };
              }
@@ -452,20 +458,23 @@ function findCurrentArea(x,y){
          else if (annotation_box[item].x1 + tmp_lineOffset < x && x < annotation_box[item].x2 - tmp_lineOffset) {
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'n'
                  };
              }
              else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 's'
                  };
              }
              else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  if (ctrl_key === 1) {
                      return {
-                         box: annotation_box[item].index,
+                         box:item,
+                         //box: annotation_box[item].index,
                          pos: 'move'
                      };
                  }
