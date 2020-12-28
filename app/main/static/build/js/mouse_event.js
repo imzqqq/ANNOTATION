@@ -129,10 +129,14 @@ function reloadAnnotationBox(){
         });
     });
 }
-var tooth_to_class = {};
+
 function mirror_class(){
-    console.log('zhixig')
+    //console.log('zhixig')
+    var tooth_to_class = {};
     var parent_btn = document.querySelector('.mirror')
+     while (parent_btn.firstChild) {
+        parent_btn.removeChild(parent_btn.firstChild);
+     }
 
     let mirror_btn = document.createElement('button')
     mirror_btn.id = "thumbnail-mirror-btn"
