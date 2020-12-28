@@ -379,15 +379,31 @@ def annotation_data_query_user_to_image():
 def review():
     # 标注数据
     ann_data_list = Annotation.query.with_entities(Annotation.ImageName).distinct().all()
+    ann_user_list = Annotation.query.with_entities(Annotation.ImageName, Annotation.User).distinct().all()
+    image_to_user = dict()
+    for ann_user in ann_user_list:
+        if ann_user[0] not in image_to_user:
+            image_to_user[ann_user[0]] = ann_user[1]
+        else:
+            image_to_user[ann_user[0]] += ',' + ann_user[1]
+
     #审核数据
     review_data_list = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+    print(review_data_list)
     # print('-----', ann_data_list[0][0])
     # print(ann_data)
-    need_review_data_list = []
+    need_review_data_list = dict()
     for ann_data in ann_data_list:
         if ann_data not in review_data_list:
-            need_review_data_list.append(ann_data[0])
-    # print('---------', need_review_data_list)
+            need_review_data_list[ann_data[0]] = image_to_user[ann_data[0]]
+
+    # for ann_image, ann_users in image_to_user.items():
+    #     if ann_image not in review_data_list:
+    #         need_review_data_list[ann_image] = ann_users
+    #         # need_review_data_list.append(temp_dict)
+    #     else:
+    #         print(ann_image)
+    #print('---------', need_review_data_list)
     if ann_data_list == []:
         flag = False
     else:

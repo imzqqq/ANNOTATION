@@ -107,7 +107,7 @@ function loadImage(result_url,ann_box) {
         while(review_toothposition.firstChild){
             review_toothposition.removeChild(review_toothposition.firstChild)
         }
-        console.log(ann_box)
+        //console.log(ann_box)
         get_labels()
         get_review_data(ann_box)
         drawonbox()
@@ -250,7 +250,7 @@ function get_total_data(ann_data){
 
 function computecurrentbox(){
     //console.log('call on drawonbox')
-    console.log(scale)
+    //console.log(scale)
     annotation_box.forEach(item=>{
         // item.x1 = Math.round(item.realx1 * scale)
         // item.y1 = Math.round(item.realy1 * scale)
@@ -314,7 +314,7 @@ document.getElementById('canvas_for_watch').onmousedown =  function (e){
         x2 = e.offsetX;
         y2 = e.offsetY;
         clickedArea = findCurrentArea(e.offsetX, e.offsetY);
-        //console.log('------', clickedArea.pos)
+        //console.log('------', clickedArea)
     }
 }
 
@@ -338,16 +338,16 @@ document.getElementById('canvas_for_watch').onmousemove = function (e){
         //把之前的画上
 
     else if(mousedown && clickedArea.box !== -1){
-        // console.log('boxid',clickedArea.box)
-        console.log('更新')
+        //console.log('boxid',clickedArea.box)
+        //console.log('更新')
         x2 = e.offsetX;
         y2 = e.offsetY;
-        console.log(x2,y2)
+        //console.log(x2,y2)
         xOffset = x2 - x1;
         yOffset = y2 - y1;
         x1 = x2;
         y1 = y2;
-        console.log(xOffset,yOffset)
+        //console.log(xOffset,yOffset)
         if (clickedArea.pos === 'move' ||
             clickedArea.pos === 'nw' ||
             clickedArea.pos === 'w' ||
@@ -382,7 +382,7 @@ document.getElementById('canvas_for_watch').onmousemove = function (e){
     }
 
     else if (!mousedown) {
-        console.log('------', clickedArea.pos)
+        //console.log('------', clickedArea.pos)
         drawonbox()
         //console.log('move :', e.offsetX, e.offsetY)
         tmp_cursor = findCurrentArea(e.offsetX, e.offsetY)
@@ -431,7 +431,7 @@ document.getElementById('canvas_for_watch').onmouseup = function (e){
     else if(mousedown && clickedArea.box === -1 && e.offsetX !== startx){
         var new_box = true
         var check_tooth = $('input[name="tooth"]:checked').val()
-        console.log(typeof check_tooth)
+        //console.log(typeof check_tooth)
         annotation_box.forEach(item=>{
             if(item.toothPosition == check_tooth){
                 layer.msg('该牙位已经有标注信息，请修改')
@@ -480,7 +480,7 @@ document.getElementById('canvas_for_watch').oncontextmenu = function (e){
 }
 
 function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
-    console.log('call newBox')
+    //console.log('call newBox')
     boxX1 = x1 < x2 ? x1 : x2;
     boxY1 = y1 < y2 ? y1 : y2;
     boxX2 = x1 > x2 ? x1 : x2;
@@ -520,19 +520,22 @@ function findCurrentArea(x,y){
          if (annotation_box[item].x1 - tmp_lineOffset < x && x < annotation_box[item].x1 + tmp_lineOffset) {
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box [item].y1 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     //box: annotation_box[item].index,
+                     box:item,
                      pos: 'nw'
                  };
              }
              else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'sw'
                  };
              }
              else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'w'
                  };
              }
@@ -540,19 +543,22 @@ function findCurrentArea(x,y){
          else if(annotation_box[item].x2 - tmp_lineOffset < x && x < annotation_box[item].x2 + tmp_lineOffset){
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'ne'
                  };
              }
              else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'se'
                  };
              }
              else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'e'
                  };
              }
@@ -561,20 +567,23 @@ function findCurrentArea(x,y){
          else if (annotation_box[item].x1 + tmp_lineOffset < x && x < annotation_box[item].x2 - tmp_lineOffset) {
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 'n'
                  };
              }
              else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
                  return {
-                     box: annotation_box[item].index,
+                     box:item,
+                     //box: annotation_box[item].index,
                      pos: 's'
                  };
              }
              else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  if (ctrl_key === 1) {
                      return {
-                         box: annotation_box[item].index,
+                         box:item,
+                         //box: annotation_box[item].index,
                          pos: 'move'
                      };
                  }
@@ -590,10 +599,10 @@ function findCurrentArea(x,y){
 
 
 $('#btn_save').click(function() {
-    var imagename = $("#image_id option:selected").text()
+    var imagename = $("#image_id option:selected").text().split('----')[0]
     if(confirm('您确定要保存  <'+imagename+'>  的审核信息吗？')) {
         shootdate = $('#datetips').val()
-        console.log(typeof shootdate)
+        //console.log(typeof shootdate)
         if(shootdate == ""){
             layer.msg('拍片日期还未设置！')
             return

@@ -15,7 +15,7 @@
     <script>
     function select_image(){
         // var user = $("#user_id option:selected").text();
-        var imagename = $("#image_id option:selected").text()
+        var imagename = $("#image_id option:selected").text().split('----')[0]
         $.ajax({
             type: "POST",
             dataType: "json",
@@ -84,8 +84,8 @@
         <div>
             <select  class="custom-select select-main" id="image_id" onchange="select_image()">
               <option>---请按标注图片进行筛选---</option>
-              {% for ann_data in image_list %}
-                  <option>{{ann_data}}</option>
+              {% for key, value in image_list.items() %}
+                  <option>{{key}}---- 标注用户：{{ value}}</option>
               {% endfor %}
             </select>
         </div>
