@@ -147,7 +147,7 @@ function mirror_class(){
 
     $('#thumbnail-mirror-btn').click( function (){
         review_box.forEach(item=>{
-            console.log(typeof item.toothPosition)
+            //console.log(typeof item.toothPosition)
                 tooth_to_class[item.toothPosition] = item.regionClass
             }
         );
@@ -160,8 +160,8 @@ function mirror_class(){
             else{
                 target_tooth_position = parseInt(item.toothPosition) - parseInt('10')
             }
-            console.log(target_tooth_position)
-            console.log(tooth_to_class[target_tooth_position])
+            // console.log(target_tooth_position)
+            // console.log(tooth_to_class[target_tooth_position])
                 item.regionClass = tooth_to_class[target_tooth_position]
             }
         );
