@@ -241,6 +241,23 @@ def image_hosting():
         # img_annlist = Annotation.query.join(Picture).all()
         return render_template('image_hosting.html', imgs=img_annlist)
 
+# 查找
+@main.route('/imagehosting/query', methods=['GET', 'POST'])
+@login_required
+def image_hosting_query():
+    # 搜索关键词
+    kw = request.form['imagename']
+    print("-------", kw)
+    page = request.args.get('page', 1, type=int)
+    imgs = Picture.query.filter(Picture.name.like('%'+kw+'%')).paginate(
+         page, per_page=8, error_out=False)
+
+    # #image = imgs.order_by(Picture.id.desc()).paginate(
+    #     page, per_page=8, error_out=False)
+    # 表连接
+    user_to_pic = Annotation.query.all()
+    # img_annlist = Annotation.query.join(Picture).all()
+    return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
 
 
 @main.route('/upload_query', methods=['POST'])
