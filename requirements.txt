@@ -20,5 +20,5 @@ regex
 datetime
 email_validator
 mysqlclient
-cv2
+opencv-python
 pytz

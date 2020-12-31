@@ -79,7 +79,9 @@
                         obj.img_resolution_h = res.img_resolution_h;
                         obj.img_url = res.url;
                      {#console.log(obj.img_size);#}
-                     parent.imagehosting_callback(obj);  //直接callback
+                     //直接callback
+                     parent.imagehosting_callback(obj);
+
                      parent.layer.close(index);
                      toastr.success(res.msg)
                      window.location.reload();
@@ -109,6 +111,8 @@
         target = $('#search-imagename').val()
 
         console.log(target)
+        //var query_obj = {};
+        //query_obj.imagename = '';
         $.ajax({
             type: "POST",
             dataType: "json",
@@ -116,6 +120,18 @@
             data: { 'imagename':  target },
             beforeSend: function() {},
             success: function (res) {
+                if (res.code === 1) {
+                    /**
+                     //直接callback
+                     console.log(res.imagename);
+                     //query_obj.imagename = res.imagename
+                     parent.query_callback(res.imagename);
+                     parent.layer.close(index);
+                     toastr.success(res.msg)
+                     window.location.reload();*/
+                } else {
+                    toastr.error(res.msg)
+                }
             }
         })
 

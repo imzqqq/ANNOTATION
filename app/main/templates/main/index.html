@@ -6,6 +6,7 @@
     {{ super() }}
     <script>
         var imagehosting_for = "thumbnail-img";
+
         //图床
         function imagehosting(flag) {
             imagehosting_for = flag;
@@ -26,6 +27,24 @@
                  updateImageDisplay(obj);
                  // get_img_resolution(obj);
             }
+        }
+
+        // 检索后的回调
+        function query_callback(imagename) {
+            var cur_imgname = imagename
+            console.log(imagename);
+
+            // var imagename = query_obj.imagename
+         
+           // layer.open({
+            //    type: 2,
+            //    title: '全景片管理',
+            //    shade: 0.8,
+             //   maxmin: true,
+            //    shadeClose: true,
+            //    area: ['75%', '90%'],
+             //   content: '{{url_for("main.image_hosting_query_callback") }}' 
+            //});
         }
 
         $(function () {

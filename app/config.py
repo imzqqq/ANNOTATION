@@ -86,17 +86,19 @@ class BaseConfig(object):
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN_DEV'
 
 
 class TestingConfig(BaseConfig):
     TESTING = True
     WTF_CSRF_ENABLED = False
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN'
+    # SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN_TEST'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN_DEV'
 
 
 class ProductionConfig(BaseConfig):
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN'
+    # SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:MiLab2020@101.132.186.76:13306/MILAB_ANN_DEV'
 
 
 config = {

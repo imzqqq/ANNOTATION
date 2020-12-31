@@ -36,6 +36,7 @@ mu = threading.Lock()
 # 允许上传的type
 ALLOWED_EXTENSIONS = set(
     ['png', 'jpg', 'bmp', 'jpeg', "PNG", "JPG", 'BMP', 'JPEG'])  # 大写的.JPG是不允许的
+imagename_gb = ""
 
 
 #日期合法性
@@ -100,6 +101,8 @@ def before_request():
 @main.route('/', methods=['POST', 'GET'])
 @login_required
 def index():
+    global imagename_gb
+    imagename_gb = ""
     return render_template('index.html')
 
 
@@ -222,41 +225,70 @@ def image_hosting():
     """
     图床
     """
-    if (current_user.role != 'secondary_annotator'):
-        page = request.args.get('page', 1, type=int)
-        imgs = Picture.query.order_by(Picture.id.desc()).paginate(
-            page, per_page=8, error_out=False)
-        # 表连接
-        user_to_pic = Annotation.query.all()
-        # img_annlist = Annotation.query.join(Picture).all()
-        return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
+    print('------request')
+    global imagename_gb
+    user_to_pic = Annotation.query.all()
+    if (imagename_gb=="" or imagename_gb is None):
+        if (current_user.role != 'secondary_annotator'):
+            page = request.args.get('page', 1, type=int)
+            imgs = Picture.query.order_by(Picture.id.desc()).paginate(
+                page, per_page=8, error_out=False)
+            # img_annlist = Annotation.query.join(Picture).all()
+            return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
+        else:
+            page = request.args.get('page', 1, type=int)
+            img_annlist = Picture.query.join(Review_Annotation).paginate(
+                page, per_page=8, error_out=False)
+            # print(img_annlist)
+            # imgs = Picture.query.order_by(Picture.id.desc()).paginate(
+            #     page, per_page=8, error_out=False)
+            # 表连接
+            # img_annlist = Annotation.query.join(Picture).all()
+            return render_template('image_hosting.html', imgs=img_annlist)
     else:
+        # 搜索关键词
         page = request.args.get('page', 1, type=int)
-        img_annlist = Picture.query.join(Review_Annotation).paginate(
-             page, per_page=8, error_out=False)
-        # print(img_annlist)
-        # imgs = Picture.query.order_by(Picture.id.desc()).paginate(
-        #     page, per_page=8, error_out=False)
-        # 表连接
-        # img_annlist = Annotation.query.join(Picture).all()
-        return render_template('image_hosting.html', imgs=img_annlist)
+        print("\n------------imagename_gb, " , imagename_gb)
+        imgs = Picture.query.filter(Picture.name.like('%'+ imagename_gb +'%')).paginate(
+            page, per_page=8, error_out=False)
+        user_to_pic = Annotation.query.all()
+        return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
 
 # 查找
 @main.route('/imagehosting/query', methods=['GET', 'POST'])
 @login_required
 def image_hosting_query():
-    # 搜索关键词
     kw = request.form['imagename']
     print("-------", kw)
+    global imagename_gb
+    imagename_gb = kw
+    res = {
+        'code': 1,
+        'msg': u'图片检索成功!',
+        'imagename': kw
+    }
+    return jsonify(res)
+
+# @main.route('/image_hosting_query_callback/', methods=['GET', 'POST'])
+# @login_required
+def image_hosting_query_callback(imagename_gb):
+    # 搜索关键词
     page = request.args.get('page', 1, type=int)
-    imgs = Picture.query.filter(Picture.name.like('%'+kw+'%')).paginate(
+    print("\n------------imagename_gb, " , imagename_gb)
+    # if(imagename_gb=="" or imagename_gb==None):
+    #     imagename_gb = request.args.get('imagename')
+    imgs = Picture.query.filter(Picture.name.like('%'+ imagename_gb +'%')).paginate(
          page, per_page=8, error_out=False)
+    # print("\n------------imagename, " , imagename_gb)
 
     # #image = imgs.order_by(Picture.id.desc()).paginate(
     #     page, per_page=8, error_out=False)
     # 表连接
     user_to_pic = Annotation.query.all()
     # img_annlist = Annotation.query.join(Picture).all()
+    # print("-------imgs: ", imgs.items)
+    # print("-------user_to_pic:", user_to_pic)
+    # query_ann = user_to_pic
     return render_template('image_hosting.html', imgs=imgs, user_to_pic=user_to_pic)
 
 
@@ -292,6 +324,7 @@ def query_pic():
         'img_resolution_w': width,
         'img_resolution_h': height,
     }
+
     return jsonify(res)
 
 
