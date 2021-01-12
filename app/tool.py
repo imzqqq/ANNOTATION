@@ -18,7 +18,7 @@ import logging
 import PIL
 from PIL import Image
 import cv2
-from app.models import Picture, Annotation, Review_Annotation
+from app.models import Picture, Annotation, Review_Annotation, Final_Review_Annotation
 
 
 def admin_required(func):
@@ -664,8 +664,9 @@ def export_toExcel(all_ann_info):
     return path_name + '.xlsx'
 
 
+# 导出审核数据
 def export_review_toExcel():
-    all_ann_info = Review_Annotation.query.all()
+    all_ann_info = Final_Review_Annotation.query.all()
     result_list = []
     index = 1
     for ann_info in all_ann_info:
@@ -673,6 +674,7 @@ def export_review_toExcel():
         info_item['id'] = index
         info_item['file_name'] = ann_info.ImageName
         info_item['tooth_age'] = ann_info.Tooth_Age
+        info_item['shoot_date'] = ann_info.ShootDate
         tooth_class = json.loads(ann_info.Tooth_Annotation_Info)
         tooth_list = []
 
@@ -767,7 +769,7 @@ def export_review_toExcel():
 
 
     pf = pd.DataFrame(result_list)
-    order = ['id', 'file_name',  "patient_name", 'sex', 'tooth_age',
+    order = ['id', 'file_name',  "patient_name", 'sex', 'tooth_age', 'shoot_date',
              '18', '17', '16', '15', '14', '13', '12', '11',
              '21', '22', '23', '24', '25', '26', '27', '28',
              '48', '47', '46', '45', '44', '43', '42', '41',
@@ -878,6 +880,7 @@ def compare_annotation_info(tooth_info_key_tooth_user):
         # print(annotation_item_list)
         class_list = []
         ann_user = ""
+        # print(judge_iou(annotation_item_list))
         if(judge_iou(annotation_item_list)):
             sum_xmin = sum_xmax = sum_ymin = sum_ymax = 0
             for annotation_item in annotation_item_list:

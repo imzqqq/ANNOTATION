@@ -3,20 +3,20 @@
       <h6 class="sidebar-heading text-primary" style="width: 100%; height: 45px;display: block;line-height: 45px;text-align: center;">
         <span>管理</span>
       </h6>
-    {% if current_user.role != "reviewer" %}
+    {% if current_user.role != "secondary_annotator" %}
       <ul class="nav flex-column ml-1">
         <li class="nav-item">
           <a class="nav-link font-weight-bold {{'active' if request.path == url_for('admin.ann_data') else ''}} text-center" href="{{url_for('admin.ann_data')}}">
             查看标注数据
           </a>
       </ul>
+    {% endif %}
       <ul class="nav flex-column ml-1">
         <li class="nav-item">
           <a class="nav-link font-weight-bold {{'active' if request.path == url_for('admin.cbct_list') else ''}} text-center" href="{{url_for('admin.cbct_list')}}">
             全景片列表
           </a>
       </ul>
-    {% endif %}
       {% if current_user.role == "root" or current_user.role == "reviewer"  %}
       <ul class="nav flex-column ml-1">
         <li class="nav-item">

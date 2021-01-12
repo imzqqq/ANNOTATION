@@ -122,3 +122,17 @@ class Review_Annotation(db.Model):
 
     Tooth_Age = db.Column(db.Float)
     flag_review = db.Column(db.Boolean(), default=False)
+    ShootDate = db.Column(db.String(64))
+
+class Final_Review_Annotation(db.Model):
+    __tablename__ = 'final_review_annotation_list'
+    __table_args__ = {"mysql_charset": "utf8"}
+    id = db.Column(db.Integer, primary_key=True)
+    Reviewer = db.Column(db.String(256))
+    ImageName = db.Column(db.String(128), ForeignKey(Picture.name), index=True)
+
+    Tooth_Annotation_Info = db.Column(db.JSON)
+
+    Tooth_Age = db.Column(db.Float)
+    flag_review = db.Column(db.Boolean(), default=False)
+    ShootDate = db.Column(db.String(64))

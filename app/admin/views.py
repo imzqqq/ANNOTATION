@@ -6,7 +6,7 @@ from . import admin
 from app.extensions import db, app_helper
 from .forms import AddAdminForm, LoginForm, AddUserForm, DeleteUserForm, EditUserForm, \
     ChangePasswordForm, AddFolderForm, InvitcodeForm, OnlineToolForm
-from app.models import User, AccessLog, InvitationCode, Picture, Annotation, Review_Annotation
+from app.models import User, AccessLog, InvitationCode, Picture, Annotation, Review_Annotation, Final_Review_Annotation
 import os
 import datetime
 from datetime import timedelta
@@ -35,6 +35,7 @@ def before_request():
 
 @admin.route('/', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def index():
     current_user.ping()
 
@@ -72,10 +73,10 @@ def login():
                 login_user(user=u, remember=login_form.remember_me.data)
                 session.permanent = True
                 app_helper.app.permanent_session_lifetime = timedelta(minutes=10)
-                # if(u.role == "secondary_annotator"):
-                #     return redirect(url_for('main.index'))
-                # else:
-                return redirect(url_for('admin.index'))
+                if(u.role == "secondary_annotator"):
+                    return redirect(url_for('main.index'))
+                else:
+                    return redirect(url_for('admin.index'))
             elif not u.status:
                 flash({'error': '用户已被管理员注销！'})
             elif not u.verify_password(login_form.password.data.strip()):
@@ -322,7 +323,8 @@ def review_data_query_user_to_image():
     image_url = imagename_result.url
 
     # review_annotation_query = Review_Annotation.query.filter_by(Reviewer=username, ImageName=imagename).first()
-    review_annotation_query = Review_Annotation.query.filter_by(ImageName=imagename).first()
+    #review_annotation_query = Review_Annotation.query.filter_by(ImageName=imagename).first()
+    review_annotation_query = Final_Review_Annotation.query.filter_by(ImageName=imagename).first()
     annotation_data = review_annotation_query.Tooth_Annotation_Info
 
     res = {
@@ -461,7 +463,8 @@ def review_query():
 @login_required
 def review_data():
     # ann_lists = Review_Annotation.query.with_entities(Review_Annotation.Reviewer).distinct().all()
-    ann_lists = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+    #ann_lists = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+    ann_lists = Final_Review_Annotation.query.with_entities(Final_Review_Annotation.ImageName).distinct().all()
     if ann_lists == []:
         flag = False
     else:
@@ -658,8 +661,8 @@ def review_save():
 
     review_query = Review_Annotation.query.filter_by(ImageName=pic_name, Reviewer=user_name).first()
     if review_query is None:
-        new_review_item = Review_Annotation(ImageName=pic_name, Reviewer=user_name,
-                                            Tooth_Annotation_Info=ann_info, Tooth_Age=tooth_age)
+        new_review_item = Review_Annotation(ImageName=pic_name, Reviewer=user_name, ShootDate=shoot_date,
+                                            Tooth_Annotation_Info=ann_info, Tooth_Age=tooth_age, flag_review=True)
         db.session.add(new_review_item)
         db.session.commit()
     else:

@@ -143,9 +143,9 @@ function add_tabel_element(ann_item,flag){
     $(th_item).html(ann_item.regionClass)
     tr_item.appendChild(th_item)
 
-    if(flag === 'not_merge'){
+    if(flag === 'not merge'){
         th_item = document.createElement('th')
-        $(th_item).html('多用户标注iou值过小')
+        $(th_item).html('多用户标注iou值过小,请重新标注')
         tr_item.appendChild(th_item)
     }
     tbody.appendChild(tr_item)
@@ -162,8 +162,8 @@ function get_review_data(ann_data){
         var ann_item = ann_data[key];
         if(ann_item['merge']) {
             if(ann_item['review_flag'] === false){
-                allNotIn = ann_item['index']
-                allNotIn++;
+                // allNotIn = ann_item['index']
+                // allNotIn++;
                 annotation_box.push(ann_item)
                 add_tabel_element(ann_item,'merge')
             }
@@ -181,8 +181,8 @@ function get_total_data(ann_data){
     for (var key in ann_data){
         var ann_item = ann_data[key];
         if(ann_item['review_flag'] === true){
-            ann_item['index'] = allNotIn
-            allNotIn++;
+            // ann_item['index'] = allNotIn
+            // allNotIn++;
             annotation_box.push(ann_item)
         }
     }
@@ -278,7 +278,14 @@ function drawonbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        console.log(item.toothPosition)
+        if(item.toothPosition === 32){
+             context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
+        }
+        else{
+             context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        }
+        //context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
     });
 }
 
@@ -460,17 +467,17 @@ document.getElementById('canvas_for_watch').oncontextmenu = function (e){
     // console.log(rightclickedArea)
     if(rightclickedArea.box !== -1){
         annotation_box.forEach((item,cur_index)=>{
-            if(item.index == rightclickedArea.box){
+            if(cur_index == rightclickedArea.box){
                 annotation_box.splice(cur_index, 1)
             }
         });
         // console.log(annotation_box)
         //确保index和下标一一对应
-        annotation_box.forEach((item,cur_index)=>{
+        /*annotation_box.forEach((item,cur_index)=>{
             item.index = cur_index
             allNotIn = item.index
         });
-        allNotIn++;
+        allNotIn++;*/
         drawonbox();
         // 不传递
         return false;
@@ -501,7 +508,7 @@ function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
             realy1 : y1 / scale,
             realy2 : y2 / scale,
 
-            index: cur_idx,
+            //index: cur_idx,
             toothPosition:toothPosition,
             regionClass:regionClass
         };
@@ -632,8 +639,8 @@ function saveReviewInfo(annotation_box,picNameStr,shootdate) {
         beforeSend: function() {},
         success: function(result) {
             layer.msg(result.message);
-            location.reload();
-
+            setTimeout("location.reload();","1000")
+            //location.reload();
         },
         error: function() {}
      });

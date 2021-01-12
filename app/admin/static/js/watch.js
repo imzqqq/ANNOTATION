@@ -132,7 +132,12 @@ function drawonbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        if(item.toothPosition === 32 || item.toothPosition === 41){
+             context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
+        }
+        else {
+            context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size)
+        }
         // context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
     });
 }

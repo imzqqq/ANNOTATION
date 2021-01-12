@@ -46,7 +46,7 @@ var border_size = 2;
 
 var image_naturalWidth, image_naturalHeight
 
-var ctrl_key
+var ctrl_key, reviewer_flag
 
 function updateImageDisplay(obj){
     //更新牙位状态
@@ -62,6 +62,7 @@ function updateImageDisplay(obj){
     // console.log('----------',image_naturalWidth,image_naturalHeight)
     reloadAnnotationBox();
      // initPage(obj);
+    reviewer_flag = false
 }
 
 function reloadAnnotationBox(){
@@ -89,37 +90,56 @@ function reloadAnnotationBox(){
                 layer.msg(result.msg);
                 if(result.code === 1){
                      // 恢复拍片日期
-                    if(result.role != 'secondary_annotator'){
+                    //if(result.role != 'secondary_annotator'){
                         $('#shootingDate').val(result.shoot_date);
-                        var getDataArray = result.annotation_box
-                        annotation_box = JSON.parse(getDataArray)
-                        // console.log(annotation_box)
-                        computereloadbox();
-                        reloadtoothstatus();
-                        allNotIn++;
-                        drawonbox();
-                    }
-                    else{
-                        var getDataArray = result.annotation_box
-                        review_box = JSON.parse(getDataArray)
-                        review_box.forEach(item=>{
-                            // item.x1 = Math.round(item.realx1 * scale)
-                            // item.y1 = Math.round(item.realy1 * scale)
-                            // item.x2 = Math.round(item.realx2 * scale)
-                            // item.y2 = Math.round(item.realy2 * scale)
-                            item.x1 = item.realx1 * scale
-                            item.y1 = item.realy1 * scale
-                            item.x2 = item.realx2 * scale
-                            item.y2 = item.realy2 * scale
-                            item.width = item.realwidth * scale
-                            item.height = item.realheight * scale
-                        });
-                        review_box.forEach(item=>{
-                            var tooth_status = document.getElementsByName(item.toothPosition)[0]
-                             tooth_status.style.background = 'green';
-                        });
-                        mirror_class();
-                        drawonReviewbox();
+                        var getDataArray = result.annotation_box;
+                        if(result.annotation_box != null){
+                            annotation_box = JSON.parse(getDataArray)
+                            // console.log(annotation_box)
+                            computereloadbox();
+                            reloadtoothstatus();
+                            //allNotIn++;
+                            if(result.role != 'reviewer'){
+                                drawonbox();
+                            }
+
+                        }
+                    //}
+                    if(result.review_flag){
+                        $('#shootingDate').val(result.shoot_date);
+                        var getDataArray = result.review_box
+                        if(result.review_box != null) {
+                            review_box = JSON.parse(getDataArray)
+                            review_box.forEach(item => {
+                                // item.x1 = Math.round(item.realx1 * scale)
+                                // item.y1 = Math.round(item.realy1 * scale)
+                                // item.x2 = Math.round(item.realx2 * scale)
+                                // item.y2 = Math.round(item.realy2 * scale)
+                                item.x1 = item.realx1 * scale
+                                item.y1 = item.realy1 * scale
+                                item.x2 = item.realx2 * scale
+                                item.y2 = item.realy2 * scale
+                                item.width = item.realwidth * scale
+                                item.height = item.realheight * scale
+                            });
+                            review_box.forEach(item => {
+                                var tooth_status = document.getElementsByName(item.toothPosition)[0]
+                                tooth_status.style.background = 'green';
+                            });
+                        }
+                        if(result.role == 'secondary_annotator'){
+                            mirror_class();
+                            drawonReviewbox();
+                        }
+                        if(result.role == 'reviewer'){
+                             review_box.forEach(item=>{
+                                 annotation_box.push(item)
+                             });
+                             review_box = []
+                             reviewer_flag = true
+                             //console.log(annotation_box)
+                             drawonbox();
+                        }
                     }
                 }
                 // console.log(result.tooth_list)
@@ -162,6 +182,8 @@ function mirror_class(){
             }
             // console.log(target_tooth_position)
             // console.log(tooth_to_class[target_tooth_position])
+            // 若审核的数据中无标签，默认仍为NAN
+            if(typeof tooth_to_class[target_tooth_position] != 'undefined')
                 item.regionClass = tooth_to_class[target_tooth_position]
             }
         );
@@ -182,7 +204,13 @@ function drawonReviewbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        if(item.toothPosition === 32 || item.toothPosition === 41){
+             context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
+        }
+        else {
+            context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size)
+        }
+        //context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
         // context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
         // context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
     });
@@ -206,7 +234,9 @@ $('#annotation-type').click(function() {
 
 function updateRegionClass(regionClass,toothPosition){
     annotation_box.forEach(item=>{
-        if(item.toothPosition === toothPosition){
+        // 用整数找
+        var int_toothPosition = parseInt(toothPosition)
+        if(item.toothPosition === int_toothPosition){
             if(item.regionClass !== regionClass){
                 item.regionClass = regionClass;
                 layer.msg('牙评分更新成功')
@@ -228,29 +258,35 @@ $('#btn_save').click(function() {
     }
     picNameStr = $('#cur_id').html();
     if(confirm('您确定要保存  <'+picNameStr+'>  的标注信息吗？')) {
+        shootdate = document.querySelector('input[type="date"]').value;
+        user = document.getElementsByClassName("avatar");
+        user_name =  user[0].alt;
         if(JSON.stringify(review_box) == '[]')
         {
-            shootdate = document.querySelector('input[type="date"]').value;
-            user = document.getElementsByClassName("avatar");
-            user_name =  user[0].alt;
-            var time = new Date();
-            day = ("0" + time.getDate()).slice(-2);
-            month = ("0" + (time.getMonth() + 1)).slice(-2);
-            var today = time.getFullYear() + "-" + (month) + "-" + (day);
-            //console.log(annotation_box,user_name,picNameStr,shootdate,today)
-            saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
+            if(reviewer_flag){
+                console.log(annotation_box)
+                saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate)
+            }
+            else{
+                var time = new Date();
+                day = ("0" + time.getDate()).slice(-2);
+                month = ("0" + (time.getMonth() + 1)).slice(-2);
+                var today = time.getFullYear() + "-" + (month) + "-" + (day);
+                //console.log(annotation_box,user_name,picNameStr,shootdate,today)
+                saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
+            }
         }
         else{
             //console.log(annotation_box,user_name,picNameStr,shootdate,today)
             //saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
-            review_index = review_box.length
+            //review_index = review_box.length
             annotation_box.forEach(item=>{
                 item.mark = 'mirror'
-                item.index = review_index
-                review_index++;
-                review_box.push(item)
+                //item.index = review_index
+                //review_index++;
+                //review_box.push(item)
             });
-            saveReviewInfo(review_box,picNameStr);
+            saveReviewInfo(annotation_box,picNameStr,user_name,shootdate);
         }
     }
 });
@@ -375,8 +411,29 @@ function saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today) {
     });
 }
 
-function saveReviewInfo(review_box,picNameStr) {
-    review_box_json = JSON.stringify(review_box)
+function saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate) {
+    var annotation_length = annotation_box.length
+    console.log(annotation_length)
+    review_box_json = JSON.stringify(annotation_box)
+    if(review_box_json == '{}') {
+        alert('没有标注信息！')
+        return
+    }
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/api/annotation/save/final/review?" + new Date(),
+        data: { 'review_info':review_box_json, 'pic_name' : picNameStr,'reviewer':user_name,'shootdate':shootdate,'annotation_length':annotation_length},
+        beforeSend: function() {},
+        success: function(result) {
+            layer.msg(result.message);
+        },
+        error: function() {}
+    });
+}
+
+function saveReviewInfo(annotation_box,picNameStr,user_name,shootdate) {
+    review_box_json = JSON.stringify(annotation_box)
     if(review_box_json == '{}'){
         alert('没有标注信息！')
         return
@@ -386,7 +443,7 @@ function saveReviewInfo(review_box,picNameStr) {
         type: "POST",
         dataType: "json",
         url: "/api/annotation/save/review?" + new Date(),
-        data: { 'review_info':review_box_json, 'pic_name' : picNameStr},
+        data: { 'review_info':review_box_json, 'pic_name' : picNameStr,'reviewer':user_name,'shootdate':shootdate},
         beforeSend: function() {},
         success: function(result) {
             layer.msg(result.message);
@@ -646,12 +703,12 @@ document.getElementById('canvas').onmouseup = function (e){
         //标签类别
         var regionClass = $('#ann input:checked').val();
         //牙位
-        var checkedToothPosition = $('input[name="tooth"]:checked').val();
-        tmpBox = newBox(startx,starty,current_x,current_y,allNotIn,checkedToothPosition,regionClass)
+        var checkedToothPosition = parseInt($('input[name="tooth"]:checked').val());
+        tmpBox = newBox(startx,starty,current_x,current_y,checkedToothPosition,regionClass)
         //console.log(tmpBox)
         if(tmpBox !== null){
             annotation_box.push(tmpBox)
-            allNotIn++;
+            //allNotIn++;
             var current_tooth = document.getElementsByName(checkedToothPosition)[0]
             if(current_tooth.style.background === 'green'){
                 //layer.msg('同一牙位请勿重复标注');
@@ -679,7 +736,7 @@ document.getElementById('canvas').oncontextmenu = function (e){
     // console.log(rightclickedArea)
     if(rightclickedArea.box !== -1){
         annotation_box.forEach((item,cur_index)=>{
-            if(item.index == rightclickedArea.box){
+            if(cur_index == rightclickedArea.box){
                 var target_tooth = item.toothPosition
                 var current_tooth = document.getElementsByName(target_tooth)[0]
                 current_tooth.children[0].checked = true;
@@ -690,7 +747,7 @@ document.getElementById('canvas').oncontextmenu = function (e){
         // console.log(annotation_box)
         //确保index和下标一一对应
 
-        if(annotation_box.length === 0){
+        /*if(annotation_box.length === 0){
             allNotIn = 0;
         }
         else{
@@ -699,7 +756,7 @@ document.getElementById('canvas').oncontextmenu = function (e){
                 allNotIn = item.index
             });
             allNotIn++;
-        }
+        }*/
         drawonReviewbox();
         drawonbox();
         return false;
@@ -744,12 +801,22 @@ function drawonbox(){
     annotation_box.forEach(item=>{
         context.beginPath();
         item = fixPosition(item)
-        context.strokeStyle = box_color
-        context.strokeRect(item.x1,item.y1,item.width,item.height)
+        if(item.mark == 'mirror' && reviewer_flag){
+            context.strokeStyle = review_color
+        }
+        else{
+            context.strokeStyle = box_color
+        }
+        context.strokeRect(item.x1,item.y1,item.width,item.height);
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size )
+        if(item.toothPosition === 32 || item.toothPosition === 41){
+             context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
+        }
+        else {
+            context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size)
+        }
         // context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
         // context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
     });
@@ -768,7 +835,7 @@ function computereloadbox(){
         item.y2 = item.realy2 * scale
         item.width = item.realwidth * scale
         item.height = item.realheight * scale
-        allNotIn = item.index
+        //allNotIn = item.index
     });
 }
 
@@ -801,7 +868,7 @@ function fixPosition(position){
     return position
 }
 
-function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
+function newBox(x1, y1, x2, y2,toothPosition,regionClass) {
     // console.log('call newBox')
     boxX1 = x1 < x2 ? x1 : x2;
     boxY1 = y1 < y2 ? y1 : y2;
@@ -823,7 +890,7 @@ function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
             realy1 : boxY1 / scale,
             realy2 : boxY2 / scale,
 
-            index: cur_idx,
+            //index: cur_idx,
             toothPosition:toothPosition,
             regionClass:regionClass
         };
