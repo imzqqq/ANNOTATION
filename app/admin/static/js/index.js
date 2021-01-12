@@ -278,7 +278,7 @@ function drawonbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        console.log(item.toothPosition)
+        //console.log(item.toothPosition)
         if(item.toothPosition === 32){
              context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
         }
