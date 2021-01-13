@@ -187,7 +187,10 @@ function mirror_class(){
             // 若审核的数据中无标签，默认仍为NAN
             if(typeof tooth_to_class[target_tooth_position] != 'undefined')
                 item.regionClass = tooth_to_class[target_tooth_position]
+            else
+                item.regionClass = 'M'
             }
+
         );
         drawpicture();
         drawonReviewbox();
