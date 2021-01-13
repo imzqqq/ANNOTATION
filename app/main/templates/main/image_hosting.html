@@ -154,40 +154,37 @@
     </div>
     <div class="row " id="page-parent">
         {% for img in imgs.items%}
-            {% if review_flag %}
-                {% for annlist in user_to_pic %}
-                    {% if annlist.ImageName == img.name %}
-                        {% if annlist.flag_review %}
-                            <div class="card m-1" style="width: 16rem;">
-                                <img src="{{img.url_s}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
-                                <div class="card-body">
-                                    <span >{{img.name}}</span><br/><br/>
-                            {% if img.remark == 'finish'%}
-                                <span style="font-size: 15px; color: lightseagreen"><b>最终审核已完成</b></span><br/>
-                            {% elif img.remark == 'missing'  %}
-                                <span style="font-size: 15px; color: lightseagreen"><b>已有二审数据，但不完整</b></span><br/>
-                            {% endif %}
-                            <span>审核者：{{annlist.Reviewer}}</span><br/>
-                            <br/>
-                        {% else %}
-                            <span>二级标注者：{{annlist.Reviewer}}</span><br/>
-                        <br/>
+            <div class="card m-1" style="width: 16rem;">
+                <img src="{{img.url_s}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
+                <div class="card-body">
+                    <span >{{img.name}}</span><br/><br/>
+                    {% if review_flag %}
+                        {% if img.remark == 'finish'%}
+                            <span style="font-size: 15px; color: lightseagreen"><b>最终审核已完成</b></span><br/>
+                        {% elif img.remark == 'missing'  %}
+                            <span style="font-size: 15px; color: lightseagreen"><b>已有二审数据，但不完整</b></span><br/>
                         {% endif %}
+
+                        {% for annlist in user_to_pic %}
+                            {% if annlist.ImageName == img.name %}
+                                {% if annlist.flag_review %}
+                                    <span>审核者：{{annlist.Reviewer}}</span><br/>
+                                <br/>
+                                {% else %}
+                                    <span>二级标注者：{{annlist.Reviewer}}</span><br/>
+                                <br/>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {% for annlist in user_to_pic %}
+                            {% if annlist.ImageName == img.name %}
+                                <span>标注者：{{annlist.User}}</span><br/>
+                                <span>标注时间：{{annlist.AnnotationDate}}</span><br/>
+                                <br/>
+                            {% endif %}
+                        {% endfor %}
                     {% endif %}
-                {% endfor %}
-            {% else %}
-                {% for annlist in user_to_pic %}
-                    {% if annlist.ImageName == img.name %}
-                        <div class="card m-1" style="width: 16rem;">
-                            <img src="{{img.url_s}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
-                            <div class="card-body">
-                                <span >{{img.name}}</span><br/><br/>
-                        <span>标注者：{{annlist.User}}</span><br/>
-                        <span>标注时间：{{annlist.AnnotationDate}}</span><br/>
-                        <br/>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
                 </div>
             </div>
         {% endfor %}
