@@ -96,7 +96,7 @@ function reloadAnnotationBox(){
                         var getDataArray = result.annotation_box;
                         if(result.annotation_box != null){
                             annotation_box = JSON.parse(getDataArray)
-                            console.log(annotation_box)
+                            //console.log(annotation_box)
                             // console.log(annotation_box)
                             computereloadbox();
                             reloadtoothstatus();

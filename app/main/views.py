@@ -580,7 +580,7 @@ def reload_annotation():
         # 当前图片审核状态
         cur_image = Picture.query.filter_by(name=pic_name).first()
         remark = cur_image.remark
-        print(remark)
+        # print(remark)
         review_data = Review_Annotation.query.filter_by(ImageName=pic_name, flag_review=1).first()
         review_box = review_data.Tooth_Annotation_Info
         shoot_date = review_data.ShootDate
