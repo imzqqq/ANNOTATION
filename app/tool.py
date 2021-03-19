@@ -928,7 +928,8 @@ def compare_annotation_info(tooth_info_key_tooth_user):
             total_class = class_list[0]
             # 有不同的
             cannot_merge_dict = dict()
-            cannot_merge_dict['review_flag'] = True
+            # cannot_merge_dict['review_flag'] = True
+            cannot_merge_dict['review_flag'] = False
             cannot_merge_dict['merge'] = False
             if len(set(class_list)) != 1:
                 for i in range(1, len(class_list)):
