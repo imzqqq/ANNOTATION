@@ -358,7 +358,7 @@ def annotation_data_query_user_to_image():
     username = request.form['username']
     imagename = request.form['imagename']
 
-    print('----', username)
+    # print('----', username)
 
     imagename_result = Picture.query.filter_by(name=imagename).first()
     image_url = imagename_result.url
@@ -391,7 +391,7 @@ def review():
 
     #审核数据
     review_data_list = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
-    print(review_data_list)
+    #print(review_data_list)
     # print('-----', ann_data_list[0][0])
     # print(ann_data)
     need_review_data_list = dict()
@@ -471,7 +471,45 @@ def review_data():
         flag = True
     return render_template('admin/review_data.html', flag=flag, ann_lists=ann_lists)
 
+#查询一审数据
+@admin.route('/review_first_data', methods=['GET', 'POST'])
+@admin_required
+@login_required
+def review_first_data():
+    # ann_lists = Review_Annotation.query.with_entities(Review_Annotation.Reviewer).distinct().all()
+    #ann_lists = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+    ann_lists = Review_Annotation.query.filter_by(flag_review=1).with_entities(Review_Annotation.ImageName).distinct().all()
+    if ann_lists == []:
+        flag = False
+    else:
+        flag = True
+    return render_template('admin/first_review_data.html', flag=flag, ann_lists=ann_lists)
 
+# 查看数据
+@admin.route('review_first_data_query_to_image', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def review_first_data_query_to_image():
+    # username = request.form['username']
+    imagename = request.form['imagename']
+
+    # print('----', username)
+
+    imagename_result = Picture.query.filter_by(name=imagename).first()
+    image_url = imagename_result.url
+
+    # review_annotation_query = Review_Annotation.query.filter_by(Reviewer=username, ImageName=imagename).first()
+    #review_annotation_query = Review_Annotation.query.filter_by(ImageName=imagename).first()
+    review_annotation_query = Review_Annotation.query.filter_by(ImageName=imagename).first()
+    annotation_data = review_annotation_query.Tooth_Annotation_Info
+
+    res = {
+        'code': 1,
+        'msg': u'成功!',
+        'url': image_url,
+        'annotation_data': annotation_data
+    }
+    return jsonify(res)
 
 @admin.route('/ann_list', methods=['GET', 'POST'])
 @login_required
@@ -649,7 +687,7 @@ def get_labels():
 @admin_required
 @login_required
 def review_save():
-    print('正在保存')
+    # print('正在保存')
     ann_info = request.form['ann_info']
     user_name = current_user.username
     pic_name = request.form['pic_name']

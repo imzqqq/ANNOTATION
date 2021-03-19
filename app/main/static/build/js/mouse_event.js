@@ -207,6 +207,16 @@ function drawonReviewbox(){
         context.strokeStyle = review_color
         context.strokeRect(item.x1,item.y1,item.width,item.height)
 
+         // 画出中心点
+
+        x_center = (item.x1 + item.x2) / 2;
+        y_center = (item.y1 + item.y2) / 2;
+        context.beginPath();
+        context.arc(x_center ,y_center, 3, 0, Math.PI * 2);
+        context.fillStyle = 'orange';
+        context.fill();
+
+
         context.font = "15px Normal"
         context.fillStyle = label_color
         if(item.toothPosition === 32 || item.toothPosition === 41){
@@ -269,7 +279,7 @@ $('#btn_save').click(function() {
         if(JSON.stringify(review_box) == '[]')
         {
             if(reviewer_flag){
-                console.log(annotation_box)
+                //console.log(annotation_box)
                 saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate)
             }
             else{
@@ -418,7 +428,7 @@ function saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today) {
 
 function saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate) {
     var annotation_length = annotation_box.length
-    console.log(annotation_length)
+    //console.log(annotation_length)
     review_box_json = JSON.stringify(annotation_box)
     if(review_box_json == '{}') {
         alert('没有标注信息！')
@@ -813,6 +823,15 @@ function drawonbox(){
             context.strokeStyle = box_color
         }
         context.strokeRect(item.x1,item.y1,item.width,item.height);
+        //画出中心点
+        x_center = (item.x1 + item.x2) / 2;
+        y_center = (item.y1 + item.y2) / 2;
+        context.beginPath();
+        context.arc(x_center ,y_center, 3, 0, Math.PI * 2);
+        context.fillStyle = 'orange';
+        context.fill();
+        //context.strokeRect(x_center,y_center, 2,2);
+
 
         context.font = "15px Normal"
         context.fillStyle = label_color

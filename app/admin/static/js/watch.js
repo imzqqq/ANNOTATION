@@ -130,6 +130,14 @@ function drawonbox(){
         }
         context.strokeRect(item.x1,item.y1,item.width,item.height)
 
+        // 画出中心点
+        x_center = (item.x1 + item.x2) / 2;
+        y_center = (item.y1 + item.y2) / 2;
+        context.beginPath();
+        context.arc(x_center ,y_center, 3, 0, Math.PI * 2);
+        context.fillStyle = 'orange';
+        context.fill();
+
         context.font = "15px Normal"
         context.fillStyle = label_color
         if(item.toothPosition === 32 || item.toothPosition === 41){

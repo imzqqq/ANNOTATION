@@ -98,7 +98,8 @@
         $('.card').removeClass('selectCard')
         $(this).addClass('selectCard');
         current_card = $(this)
-        var img_cur_url = current_card.find('img').prop('src');
+        //var img_cur_url = current_card.find('img').prop('src');
+        var img_cur_url = current_card.find('img').prop('id');
         var img_cur_name = current_card.find('img').prop('alt');
         $('#selectImg').prop('src', img_cur_url).prop('alt', img_cur_name);
     });
@@ -137,6 +138,34 @@
 
     });
 
+    $('#no_ann').click(function () {
+        var no_ann_checked = $("input[type='checkbox']").is(':checked')
+        console.log(no_ann_checked)
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "{{url_for('main.image_hosting_query')}}",
+            data: { 'query_flag':  no_ann_checked },
+            beforeSend: function() {},
+            success: function (res) {
+                if (res.code === 1) {
+                    /**
+                     //直接callback
+                     console.log(res.imagename);
+                     //query_obj.imagename = res.imagename
+                     parent.query_callback(res.imagename);
+                     parent.layer.close(index);
+                     toastr.success(res.msg)*/
+                     window.location.reload();
+                } else {
+                    toastr.error(res.msg)
+                }
+            }
+        })
+
+
+    });
+
 
 </script>
 {% endblock %}
@@ -155,13 +184,14 @@
     <div class="row " id="page-parent">
         {% for img in imgs.items%}
             <div class="card m-1" style="width: 16rem;">
-                <img src="{{img.url_s}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">
+{#                <img src="{{img.url_s}}" class="card-img-top rounded" style="height: 14rem;" alt="{{img.name}}">#}
+                <img src="" class="card-img-top rounded" style="height: 4rem;" alt="{{img.name}}" id="{{img.url_s}}">
                 <div class="card-body">
                     <span >{{img.name}}</span><br/><br/>
                     {% if review_flag %}
                         {% if img.remark == 'finish'%}
                             <span style="font-size: 15px; color: lightseagreen"><b>最终审核已完成</b></span><br/>
-                        {% elif img.remark == 'missing'  %}
+                        {% elif img.remark == 'missing'%}
                             <span style="font-size: 15px; color: lightseagreen"><b>已有二审数据，但不完整</b></span><br/>
                         {% endif %}
 

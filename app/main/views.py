@@ -225,13 +225,21 @@ def image_hosting():
     """
     图床
     """
-    print('------request')
+    # print('------request')
     global imagename_gb
     user_to_pic = Annotation.query.all()
     if (imagename_gb == "" or imagename_gb is None):
         if (current_user.role == 'secondary_annotator' or current_user.role == 'reviewer'):
             page = request.args.get('page', 1, type=int)
-            img_annlist = Picture.query.join(Review_Annotation).paginate(
+            # img_annlist = Picture.query.join(Review_Annotation).paginate(
+            #     page, per_page=8, error_out=False)
+            review_ann_image_list = Review_Annotation.query.with_entities(Review_Annotation.ImageName).distinct().all()
+            norm_review_ann = []
+            for ann_image in review_ann_image_list:
+                norm_review_ann.append(ann_image[0])
+            # print('长度是：', len(norm_review_ann))
+            page = request.args.get('page', 1, type=int)
+            img_annlist = Picture.query.filter(Picture.name.in_(norm_review_ann)).paginate(
                 page, per_page=8, error_out=False)
             user_to_pic = Review_Annotation.query.all()
             return render_template('image_hosting.html', imgs=img_annlist, review_flag=True, user_to_pic=user_to_pic)
@@ -452,7 +460,7 @@ def get_sample():
 # 标注保存接口
 @main.route('/api/annotation/save', methods=['POST'])
 def save_annotation():
-    print('正在保存')
+    # print('正在保存')
     ann_info = request.form['ann_info']
     user_name = request.form['user']
     pic_name = request.form['pic_name']
@@ -484,7 +492,7 @@ def save_annotation():
 # 标注保存接口
 @main.route('/api/annotation/save/review', methods=['POST'])
 def save_review_annotation():
-    print('正在保存')
+    # print('正在保存')
     review_info = request.form['review_info']
     pic_name = request.form['pic_name']
     user_name = request.form['reviewer']
@@ -521,7 +529,7 @@ def save_final_review_annotation():
     # print('user_name')
     shootdate = request.form['shootdate']
     annotation_length = request.form['annotation_length']
-    print(type(annotation_length))
+    # print(type(annotation_length))
     # print(ann_info)
     # print('------', shoot_date)
     tooth_age = compute_tooth_age(pic_name, shootdate)
