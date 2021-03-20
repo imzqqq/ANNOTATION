@@ -445,7 +445,7 @@ document.getElementById('canvas_for_watch').onmouseup = function (e){
     }
     else if(mousedown && clickedArea.box === -1 && e.offsetX !== startx){
         var new_box = true
-        var check_tooth = $('input[name="tooth"]:checked').val()
+        var check_tooth = parseInt($('input[name="tooth"]:checked').val());
         //console.log(typeof check_tooth)
         annotation_box.forEach(item=>{
             if(item.toothPosition == check_tooth){
@@ -455,7 +455,7 @@ document.getElementById('canvas_for_watch').onmouseup = function (e){
         })
         if(new_box && check_tooth != undefined){
             var regionClass = $('#ann input:checked').val();
-            tmpBox = newBox(startx,starty,current_x,current_y,allNotIn,check_tooth,regionClass)
+            tmpBox = newBox(startx,starty,current_x,current_y,check_tooth,regionClass)
             if(tmpBox !== null){
                 annotation_box.push(tmpBox)
                 allNotIn++;
@@ -494,8 +494,7 @@ document.getElementById('canvas_for_watch').oncontextmenu = function (e){
     // console.log(annotation_box)
 }
 
-function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
-    //console.log('call newBox')
+function newBox(x1, y1, x2, y2,toothPosition,regionClass) {
     boxX1 = x1 < x2 ? x1 : x2;
     boxY1 = y1 < y2 ? y1 : y2;
     boxX2 = x1 > x2 ? x1 : x2;
@@ -511,10 +510,10 @@ function newBox(x1, y1, x2, y2,cur_idx,toothPosition,regionClass) {
             // realx2 : Math.round(x2 / scale),
             // realy1 : Math.round(y1 / scale),
             // realy2 : Math.round(y2 / scale),
-            realx1 : x1 / scale,
-            realx2 : x2 / scale,
-            realy1 : y1 / scale,
-            realy2 : y2 / scale,
+            realx1 : boxX1 / scale,
+            realx2 : boxX2 / scale,
+            realy1 : boxY1 / scale,
+            realy2 : boxY2 / scale,
 
             //index: cur_idx,
             toothPosition:toothPosition,
