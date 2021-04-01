@@ -257,7 +257,7 @@ def convert_to_voc2007(file_path='annotation/annotation.txt'):
     file_train_val.close()
     file_val.close()
 
-
+#旧版导出
 def toExcel(path_annotation):
     dir_path_annotation = 'annotation/' + path_annotation
     # 文件名->不带后缀
@@ -569,6 +569,7 @@ def export_toExcel(all_ann_info):
 
         info_item['patient_name'] = re_item_name
         info_item['sex'] = re_item_sex
+        info_item['birth_date'] = re_item_year + '-' + re_item_month + '-' + re_item_day
 
 
         for tooth_class_item in tooth_class:
@@ -648,7 +649,7 @@ def export_toExcel(all_ann_info):
 
 
     pf = pd.DataFrame(result_list)
-    order = ['id', 'file_name',  "patient_name", 'sex', 'annotation_user', 'annotation_date', 'shoot_date', 'tooth_age',
+    order = ['id', 'file_name',  "patient_name", 'sex', 'annotation_user', 'annotation_date', 'shoot_date', 'birth_date', 'tooth_age',
              '18', '17', '16', '15', '14', '13', '12', '11',
              '21', '22', '23', '24', '25', '26', '27', '28',
              '48', '47', '46', '45', '44', '43', '42', '41',
@@ -690,6 +691,7 @@ def export_review_toExcel():
 
         info_item['patient_name'] = re_item_name
         info_item['sex'] = re_item_sex
+        info_item['birth_date'] = re_item_year + '-' + re_item_month + '-' + re_item_day
 
 
         for tooth_class_item in tooth_class:
@@ -769,7 +771,7 @@ def export_review_toExcel():
 
 
     pf = pd.DataFrame(result_list)
-    order = ['id', 'file_name',  "patient_name", 'sex', 'tooth_age', 'shoot_date',
+    order = ['id', 'file_name',  "patient_name", 'sex', 'tooth_age', 'shoot_date', 'birth_date',
              '18', '17', '16', '15', '14', '13', '12', '11',
              '21', '22', '23', '24', '25', '26', '27', '28',
              '48', '47', '46', '45', '44', '43', '42', '41',
