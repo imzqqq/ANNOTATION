@@ -638,29 +638,37 @@ document.getElementById('canvas').onmousemove = function (e){
             clickedArea.pos === 'w' ||
             clickedArea.pos === 'sw') {
             annotation_box[clickedArea.box].x1 += xOffset;
-            annotation_box[clickedArea.box].realx1 = annotation_box[clickedArea.box].x1 / scale;
+            //annotation_box[clickedArea.box].realx1 = annotation_box[clickedArea.box].x1 / scale;
           }
           if (clickedArea.pos === 'move' ||
               clickedArea.pos === 'nw' ||
             clickedArea.pos === 'n' ||
             clickedArea.pos === 'ne') {
             annotation_box[clickedArea.box].y1 += yOffset;
-            annotation_box[clickedArea.box].realy1 = annotation_box[clickedArea.box].y1 / scale;
+            //annotation_box[clickedArea.box].realy1 = annotation_box[clickedArea.box].y1 / scale;
           }
           if (clickedArea.pos === 'move' ||
               clickedArea.pos === 'ne' ||
             clickedArea.pos === 'e' ||
             clickedArea.pos === 'se') {
             annotation_box[clickedArea.box].x2 += xOffset;
-            annotation_box[clickedArea.box].realx2 = annotation_box[clickedArea.box].x2 / scale;
+            //annotation_box[clickedArea.box].realx2 = annotation_box[clickedArea.box].x2 / scale;
           }
           if (clickedArea.pos === 'move' ||
               clickedArea.pos === 'sw' ||
               clickedArea.pos === 's' ||
               clickedArea.pos === 'se') {
             annotation_box[clickedArea.box].y2 += yOffset;
-            annotation_box[clickedArea.box].realy2 = annotation_box[clickedArea.box].y2 / scale;
+            //annotation_box[clickedArea.box].realy2 = annotation_box[clickedArea.box].y2 / scale;
           }
+          annotation_box[clickedArea.box].x1 = annotation_box[clickedArea.box].x1 < annotation_box[clickedArea.box].x2 ? annotation_box[clickedArea.box].x1 : annotation_box[clickedArea.box].x2;
+          annotation_box[clickedArea.box].y1 = annotation_box[clickedArea.box].y1 < annotation_box[clickedArea.box].y2 ? annotation_box[clickedArea.box].y1 : annotation_box[clickedArea.box].y2;
+          annotation_box[clickedArea.box].x2 = annotation_box[clickedArea.box].x1 > annotation_box[clickedArea.box].x2 ? annotation_box[clickedArea.box].x1 : annotation_box[clickedArea.box].x2;
+          annotation_box[clickedArea.box].y2 = annotation_box[clickedArea.box].y1 > annotation_box[clickedArea.box].y2 ? annotation_box[clickedArea.box].y1 : annotation_box[clickedArea.box].y2;
+          annotation_box[clickedArea.box].realx1 = annotation_box[clickedArea.box].x1 / scale;
+          annotation_box[clickedArea.box].realx2 = annotation_box[clickedArea.box].x2 / scale;
+          annotation_box[clickedArea.box].realy1 = annotation_box[clickedArea.box].y1 / scale;
+          annotation_box[clickedArea.box].realy2 = annotation_box[clickedArea.box].y2 / scale;
           drawonReviewbox();
           drawonbox();
     }
