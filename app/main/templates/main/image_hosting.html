@@ -43,12 +43,13 @@
             processData: false,
             contentType: false,
             success: function (res) {
-                if (res.code === 1) {
-                    toastr.success(res.msg)
+                //console.log('返回')
+                //if (res.code === 1) {
+                    //toastr.success(res.msg)
                     window.location.reload();
-                } else {
+                /*} else {
                     toastr.error(res.msg)
-                }
+                }*/
             }
         });
     });
@@ -209,9 +210,13 @@
                     {% else %}
                         {% for annlist in user_to_pic %}
                             {% if annlist.ImageName == img.name %}
-                                <span>标注者：{{annlist.User}}</span><br/>
-                                <span>标注时间：{{annlist.AnnotationDate}}</span><br/>
-                                <br/>
+                                {% if annlist.User == 'admin' %}
+                                    <span> 已有模型检测结果  </span><br/>
+                                {% else %}
+                                    <span>标注者：{{annlist.User}}</span><br/>
+                                    <span>标注时间：{{annlist.AnnotationDate}}</span><br/>
+                                    <br/>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
                     {% endif %}
@@ -231,6 +236,15 @@
             {% endif %}
             <button id="ok" class="btn btn-primary p-2 m-2">确定添加</button>
         </div>
+            {% with messages =  get_flashed_messages() %}
+            {% if messages %}
+                <div>
+              {% for msg in messages %}
+                <li>{{ msg }}</li>
+              {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
     </div>
 </div>
 {% endblock %}

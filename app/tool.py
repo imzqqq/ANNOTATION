@@ -19,6 +19,7 @@ import PIL
 from PIL import Image
 import cv2
 from app.models import Picture, Annotation, Review_Annotation, Final_Review_Annotation
+import numpy as np
 
 
 def admin_required(func):
@@ -1063,10 +1064,30 @@ def compute_tooth_age(imagename, shootdate):
     cur_birth_date = datetime.date(int(cur_birth_date_year), int(cur_birth_date_month),
                                    int(cur_birth_date_day))
 
-    y, m, d = minus_result(cur_shoot_date, cur_birth_date)
-    age_str = str(y) + 'years-' + str(m) + 'months-' + str(d) + 'days'
-    age = compute_year_age(y, m, d)
-    return age
+    days_diff1 = date_to_int(cur_shoot_date)
+    days_diff2 = date_to_int(cur_birth_date)
+    days_diff = abs(days_diff1 - days_diff2)
+    print('--------', days_diff)
+    return format(days_diff / 365, '.4f')
+
+
+def date_to_int(compute_date_time):
+    month_length = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    com_year = compute_date_time.year
+    com_momth = compute_date_time.month
+    com_day = compute_date_time.day
+    ans = com_day - 1
+    while com_momth != 0:
+        com_momth -= 1
+        ans += month_length[com_momth]
+        # 闰年
+        if com_momth == 2 and is_leap(com_year):
+            ans += 1
+    ans += 365 * (com_year - 1971)
+    ans += (com_year - 1) // 4 - 1971 // 4
+    ans -= (com_year - 1) // 100 - 1971 // 100
+    ans += (com_year - 1) // 400 - 1971 // 400
+    return ans
 
 
 # 判断是否闰年
@@ -1076,28 +1097,66 @@ def is_leap(year):
     else:
         return False
 
-# 计算
-month_days = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31,
-              6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
 
-def minus_result(first_year, second_year):
-    y = first_year.year - second_year.year
-    m = first_year.month - second_year.month
-    d = first_year.day - second_year.day
-    if d < 0:
-        if second_year.month == 2:
-            if is_leap(second_year.year):
-                month_days[2] = 29
-        d += month_days[second_year.month]
-        m -= 1
-    if m < 0:
-        m += 12
-        y -= 1
-    return y, m, d
+def clip_img(image_np):
+    h = image_np.shape[0]
+    w = image_np.shape[1]
+    # print(h, w)
+    min_h = 0
+    max_h = h
+    min_w = 0
+    max_w = w
+    for i in range(0, h):
+        # ————> 取
+        image_as_w = image_np[i, :]
+        if i != h - 1:
+            image_as_w_next = image_np[i + 1, :]
+        if i != 0:
+            image_as_w_pre = image_np[i - 1, :]
 
-def compute_year_age(y, m, d):
-    day_to_month = format(d / 30, '.4f')
-    total_month = int(m) + float(day_to_month)
-    month_to_year = format(total_month / 12, '.4f')
-    year_age = int(y) + float(month_to_year)
-    return year_age
+        if i != h - 1 and (len(np.nonzero(image_as_w_next)[0]) > w / 2 and len(np.nonzero(image_as_w)[0]) < w / 5):
+            min_h = i + 1
+        if i != 0 and (len(np.nonzero(image_as_w_pre)[0]) > w / 2 and len(np.nonzero(image_as_w)[0]) < w / 5):
+            max_h = i
+
+    for i in range(0, w):
+        # ^ 取
+        image_as_h = image_np[:, i]
+        if i != w - 1:
+            image_as_h_next = image_np[:, i + 1]
+        if i != 0:
+            image_as_h_pre = image_np[:, i - 1]
+
+        if i != w - 1 and (len(np.nonzero(image_as_h_next)[0]) > h / 2 and len(np.nonzero(image_as_h)[0]) < h / 10):
+            min_w = i + 1
+        if (i != 0) and (len(np.nonzero(image_as_h_pre)[0]) > h / 2 and len(np.nonzero(image_as_h)[0]) < h / 10):
+            max_w = i  # 切片的特性，最后一位不包括，不减1
+
+    # print('----', min_h, min_w, max_h, max_w)
+    clip_np = image_np[min_h:max_h, min_w:max_w]
+    return clip_np, min_h, min_w
+
+
+def preprocess_image(path):
+    image_np = np.array(Image.open(path))
+    image_shape = image_np.shape
+
+    if len(image_shape) == 3:
+        image_channel_0 = image_np[:, :, 0]
+        image_channel_1 = image_np[:, :, 1]
+        diff_channel = image_channel_0 - image_channel_1
+        non_zero_01 = np.nonzero(diff_channel)
+        non_zero_len = len(non_zero_01[0])
+        for index in range(non_zero_len):
+            h_index12 = non_zero_01[0][index]
+            w_index12 = non_zero_01[1][index]
+            # print(h_index, w_index)
+            image_channel_0[h_index12][w_index12] = 0
+    else:
+        image_channel_0 = image_np
+
+    clip_np, diff_h, diff_w = clip_img(image_channel_0)
+    clip_np = np.expand_dims(clip_np, 2)
+    clip_np = np.concatenate((clip_np, clip_np, clip_np), axis=-1)
+    final_image = Image.fromarray(clip_np)
+    return final_image, diff_h, diff_w

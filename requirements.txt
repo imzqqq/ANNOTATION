@@ -22,3 +22,4 @@ email_validator
 mysqlclient
 opencv-python
 pytz
+scipy

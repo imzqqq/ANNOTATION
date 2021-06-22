@@ -1,6 +1,6 @@
 # -*-coding:utf-8-*-
 from flask import render_template, redirect, request, current_app, url_for, g,\
-     send_from_directory, abort, flash, Flask, make_response, jsonify, send_file, session
+     send_from_directory, abort, flash, Flask, make_response, jsonify, send_file, session, get_flashed_messages
 from flask_login import login_user, logout_user, login_required, current_user
 from . import main
 from app.models import User, InvitationCode, Picture, Annotation, Review_Annotation, Final_Review_Annotation
@@ -22,7 +22,8 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 import app.config as sys_config
 import app.tool as tool
-from app.tool import toExcel, compute_tooth_age
+from app.tool import toExcel, compute_tooth_age, preprocess_image
+from app.yolo import YOLO
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
@@ -352,7 +353,8 @@ def query_pic():
 def get_image(filename):
     return send_from_directory(current_app.config['MILAB_UPLOAD_PATH'], filename)
 
-
+# flash 使用：0 重复上传  1 format error
+# 2 filename error     3 success    4 fail
 @main.route('/upload', methods=['POST'])
 @login_required
 def upload():
@@ -360,65 +362,71 @@ def upload():
     res = {}
     files = request.files.getlist('files')
     for file in files:
-        if not allowed_file(file.filename):
-            res = {
-                'code': 0,
-                'msg': '图片格式异常!'
-            }
-            flash("format error!!!")
-        elif not allowed_name(file.filename):
-            res = {
-                'code': 0,
-                'msg': '图片名不合法!'
-            }
-            flash("filename error!!!")
+        print('----file---', type(file))
+        # 先判断重名
+        rename_pic = Picture.query.filter_by(name=file.filename.replace(" ", "").strip() if len(file.filename) < 32 else file.filename).first()
+        if rename_pic is not None:
+            flash(str(file.filename) + '重复上传', category='repeat')
         else:
-            url_path = ''
-            url_path_s = ''
-            url_path_m = ''
-            upload_type = current_app.config.get('MILAB_UPLOAD_TYPE')
-            ex = os.path.splitext(file.filename)[1]
-            ct = time.time()
-            data_head = datetime.now().strftime('%Y%m%d%H%M%S')
-            data_secs = (ct - int(ct)) * 1000
-            time_stamp = "%s%05d" % (data_head, data_secs)
-            filename = time_stamp + ex
-            time.sleep(0.001)
-
-            if upload_type is None or upload_type == '' or upload_type == 'local':
-                file.save(os.path.join(current_app.config['MILAB_UPLOAD_PATH'], filename))
-                filename_s = resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['small'])
-                filename_m = resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['medium'])
-
-                url_path = url_for('main.get_image', filename=filename)
-                url_path_s = url_for('main.get_image', filename=filename_s)
-                url_path_m = url_for('main.get_image', filename=filename_m)
+            if not allowed_file(file.filename):
+                flash(str(file.filename) + "格式有误", category='format')
+                # flash("format error!!!")
+            elif not allowed_name(file.filename):
+                flash(str(file.filename) + "名称不合法", category='filename')
             else:
-                flash("上传失败!!!")
+                url_path = ''
+                url_path_s = ''
+                url_path_m = ''
+                upload_type = current_app.config.get('MILAB_UPLOAD_TYPE')
+                ex = os.path.splitext(file.filename)[1]
+                ct = time.time()
+                data_head = datetime.now().strftime('%Y%m%d%H%M%S')
+                data_secs = (ct - int(ct)) * 1000
+                time_stamp = "%s%05d" % (data_head, data_secs)
+                filename = time_stamp + ex
+                time.sleep(0.001)
 
-            # 返回   文件名不带空格！
-            pic = Picture(name=file.filename.replace(" ", "").strip() if len(file.filename) < 32 else filename, url=url_path, url_s=url_path_s,
-                          url_m=url_path_m)
-            try:
-                db.session.add(pic)
-                db.session.commit()
-                res = {
-                    'code': 1,
-                    'msg': u'图片上传成功！',
-                    'url': url_path,
-                    'url_s': url_path_s,
-                    'url_m': url_path_m,
-                    'name': filename
-                }
-            except:
-                db.session.rollback()
-                flash("请勿重复上传!")
-                res = {
-                    'code': 0,
-                    'msg': '请勿重复上传！！！'
-                }
+                if upload_type is None or upload_type == '' or upload_type == 'local':
+                    file.save(os.path.join(current_app.config['MILAB_UPLOAD_PATH'], filename))
+                    filename_s = resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['small'])
+                    filename_m = resize_image(file, filename, current_app.config['MILAB_IMG_SIZE']['medium'])
+
+                    url_path = url_for('main.get_image', filename=filename)
+                    url_path_s = url_for('main.get_image', filename=filename_s)
+                    url_path_m = url_for('main.get_image', filename=filename_m)
+                else:
+                    flash(str(file.filename) + '上传失败', category='fail')
+
+                # 返回   文件名不带空格！
+                pic = Picture(name=file.filename.replace(" ", "").strip() if len(file.filename) < 32 else filename, url=url_path, url_s=url_path_s,
+                              url_m=url_path_m)
+                try:
+                    db.session.add(pic)
+                    db.session.commit()
+                    flash(str(file.filename) + '上传成功', category='success')
+                except:
+                    db.session.rollback()
+                    flash(str(file.filename) + '上传失败', category='fail')
+        get_model_predict(filename, file.filename)
+    res = {
+        'code': 1,
+        'msg': 'upload finish'
+    }
+    # return redirect('/get_flash_upload')
     return jsonify(res)
 
+@main.route('/get_flash_upload')
+@login_required
+def get_flash_uploads():
+    upload_msg = get_flashed_messages()
+    success_msg = get_flashed_messages(category_filter=['success'])
+
+    fail_msg = get_flashed_messages(category_filter=['fail', 'repeat', 'format', 'filename'])
+
+    for msg in upload_msg:
+        print(msg)
+
+    return redirect('/imagehosting')
 
 @main.route('/<template>')
 def route_template(template):
@@ -558,6 +566,28 @@ def save_final_review_annotation():
     db.session.commit()
     return jsonify(result)
 
+# 载入模型数据接口
+@main.route('/api/annotation/get/model', methods=['POST'])
+def load_model_data():
+    user_name = request.form['user']
+    pic_name = request.form['pic_name']
+
+    if current_user.role != 'secondary_annotator' and current_user.role != 'reviewer':
+        ann_data = Annotation.query.filter_by(ImageName=pic_name, User=user_name).first()
+        if ann_data is None:
+            result = {
+                'code': 0,
+                'msg': u'未查询到标注数据!'
+            }
+        else:
+            annotation_box = ann_data.Tooth_Annotation_Info
+            # print('---', shoot_date)
+            result = {
+                'code': 1,
+                'msg': u'载入成功！',
+                'annotation_box': annotation_box,
+            }
+        return jsonify(result)
 
 # 标注载入接口
 @main.route('/api/annotation/reload', methods=['POST'])
@@ -661,3 +691,129 @@ def not_found_error(error):
 @main.errorhandler(500)
 def internal_error(error):
     return render_template('page_500.html'), 500
+
+def get_model_predict(image_path, flile_name):
+    yolo = YOLO()
+    image, diff_h, diff_w, = preprocess_image('uploads/' + image_path)
+    location_list = yolo.detect_image(image, image_path)
+    # top, left, bottom, right
+    index = 0
+    predict_loc_list = []
+    for pre_location in location_list:
+        # print(type(pre_location))
+        cur_loc_dict = dict()
+        # print(type(pre_location[1]))
+        cur_loc_dict["realx1"] = float(pre_location[1]) + diff_w
+        cur_loc_dict["realx2"] = float(pre_location[3]) + diff_w
+        cur_loc_dict["realy1"] = float(pre_location[0]) + diff_h
+        cur_loc_dict["realy2"] = float(pre_location[2]) + diff_h
+        cur_loc_dict["index"] = index
+        index += 1
+        predict_loc_list.append(cur_loc_dict)
+
+    model_info = json.dumps(predict_loc_list)
+
+    user_name = "admin"
+    ann_query = Annotation.query.filter_by(ImageName=flile_name, User=user_name).first()
+    if ann_query is None:
+        new_ann_item = Annotation(ImageName=flile_name, User=user_name, Tooth_Annotation_Info=model_info)
+        db.session.add(new_ann_item)
+        db.session.commit()
+    else:
+        ann_query.Tooth_Annotation_Info = model_info
+        # ann_query.ShootDate = shoot_date
+        # ann_query.AnnotationDate = annotation_date
+        # ann_query.Tooth_Age = tooth_age
+        db.session.commit()
+    result = dict()
+    result['message'] = '保存成功！'
+    return jsonify(result)
+
+# 本地上传接口
+@main.route('/upload_local')
+def upload_local():
+    upload_list = os.listdir('upload_local')
+    print('-----', len(upload_list))
+    for i in range(len(upload_list)):
+        """图片上传处理"""
+        cur_filename = upload_list[i]
+        rename_pic = Picture.query.filter_by(name=cur_filename.replace(" ", "").strip() if len(cur_filename) < 32 else cur_filename).first()
+        if rename_pic is not None:
+            flash(str(cur_filename) + '重复上传', category='repeat')
+        else:
+            if not allowed_file(cur_filename):
+                flash(str(cur_filename) + "格式有误", category='format')
+                # flash("format error!!!")
+            elif not allowed_name(cur_filename):
+                flash(str(cur_filename) + "名称不合法", category='filename')
+            else:
+                url_path = ''
+                url_path_s = ''
+                url_path_m = ''
+                upload_type = current_app.config.get('MILAB_UPLOAD_TYPE')
+                ex = os.path.splitext(cur_filename)[1]
+                ct = time.time()
+                data_head = datetime.now().strftime('%Y%m%d%H%M%S')
+                data_secs = (ct - int(ct)) * 1000
+                time_stamp = "%s%05d" % (data_head, data_secs)
+                filename = time_stamp + ex
+                time.sleep(0.001)
+
+                if upload_type is None or upload_type == '' or upload_type == 'local':
+                    cur_image = Image.open('upload_local/' + cur_filename)
+                    cur_image.save(os.path.join(current_app.config['MILAB_UPLOAD_PATH'], filename))
+                    filename_s = resize_image('upload_local/' + cur_filename, filename, current_app.config['MILAB_IMG_SIZE']['small'])
+                    filename_m = resize_image('upload_local/' + cur_filename, filename, current_app.config['MILAB_IMG_SIZE']['medium'])
+
+                    url_path = url_for('main.get_image', filename=filename)
+                    url_path_s = url_for('main.get_image', filename=filename_s)
+                    url_path_m = url_for('main.get_image', filename=filename_m)
+                else:
+                    flash(str(cur_filename) + '上传失败', category='fail')
+
+                # 返回   文件名不带空格！
+                pic = Picture(name=cur_filename.replace(" ", "").strip() if len(cur_filename) < 32 else cur_filename,
+                              url=url_path, url_s=url_path_s,
+                              url_m=url_path_m)
+                try:
+                    db.session.add(pic)
+                    db.session.commit()
+                    flash(str(cur_filename) + '上传成功', category='success')
+                except:
+                    db.session.rollback()
+                    flash(str(cur_filename) + '上传失败', category='fail')
+
+        get_model_predict(cur_filename)
+
+    res = {
+        'code': 1,
+        'msg': 'upload finish'
+    }
+    upload_msg = get_flashed_messages()
+    # success_msg = get_flashed_messages(category_filter=['success'])
+    #
+    # fail_msg = get_flashed_messages(category_filter=['fail', 'repeat', 'format', 'filename'])
+
+    for msg in upload_msg:
+        print(msg)
+    # return redirect('/get_flash_upload')
+    return jsonify(res)
+
+# 更新年龄
+@main.route('/test/age')
+def age_recompute():
+    all_ann = Annotation.query.filter(Annotation.User != 'admin').all()
+    # all_ann = Final_Review_Annotation.query.all()
+    # print(len(all_ann))
+    for now_ann in all_ann:
+        shoot_date = now_ann.ShootDate
+        imagename = now_ann.ImageName
+        ann_user = now_ann.User
+        # ann_user = now_ann.Reviewer
+        tooth_age = compute_tooth_age(imagename, shoot_date)
+        cur_work_item = Annotation.query.filter_by(ImageName=imagename, User=ann_user).first()
+        # cur_work_item = Final_Review_Annotation.query.filter_by(ImageName=imagename, Reviewer=ann_user).first()
+        cur_work_item.Tooth_Age = tooth_age
+        db.session.commit()
+        # print('更新')
+    return "success!"

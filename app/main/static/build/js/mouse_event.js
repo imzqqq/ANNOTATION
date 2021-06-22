@@ -61,11 +61,50 @@ function updateImageDisplay(obj){
     get_labels();
     // console.log('----------',image_naturalWidth,image_naturalHeight)
     reloadAnnotationBox();
+    loadModelAnnotatinBox();
      // initPage(obj);
     reviewer_flag = false
 }
 
+function loadModelAnnotatinBox(){
+    annotation_box = []     //  清空
+    initToothStatus();  //更新牙位状态
+    var root_btn = document.querySelector('.model_data')
+    while(root_btn.firstChild){
+        root_btn.removeChild(root_btn.firstChild)
+    }
+
+    model_btn = document.createElement('button')
+    model_btn.id = "get-model-btn"
+    model_btn.type = "button"
+    model_btn.className = "btn-success"
+    model_btn.innerText = "载入模型检测结果"
+    root_btn.appendChild(model_btn)
+
+    $('#get-model-btn').click(function (){
+         picNameStr = $('#cur_id').html();
+         user_name = "admin"
+         $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/api/annotation/get/model?" + new Date(),
+            data: { 'user': user_name, 'pic_name' : picNameStr},
+            beforeSend: function() {},
+            success: function(result) {
+                layer.msg(result.msg);
+                if(result.code === 1) {
+                    var getDataArray = result.annotation_box;
+                    annotation_box = JSON.parse(getDataArray);
+                     computereloadbox();
+                     drawonbox();
+                }
+            },
+         });
+    });
+}
+
 function reloadAnnotationBox(){
+    annotation_box = [];    //清空
     var parent_btn = document.querySelector('.reload')
     while (parent_btn.firstChild) {
         parent_btn.removeChild(parent_btn.firstChild);
@@ -78,6 +117,7 @@ function reloadAnnotationBox(){
     parent_btn.appendChild(reload_btn)
 
     $('#thumbnail-reload-btn').click(function (){
+        picNameStr = $('#cur_id').html();
         user = document.getElementsByClassName("avatar");
         user_name =  user[0].alt;
         $.ajax({
@@ -153,7 +193,6 @@ function reloadAnnotationBox(){
 }
 
 function mirror_class(){
-    //console.log('zhixig')
     var tooth_to_class = {};
     var parent_btn = document.querySelector('.mirror')
      while (parent_btn.firstChild) {
@@ -499,13 +538,13 @@ function findCurrentArea(x,y){
                      pos: 'sw'
                  };
              }
-             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
-                 return {
-                     box:item,
-                     //box: annotation_box[item].index,
-                     pos: 'w'
-                 };
-             }
+             // else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
+             //     return {
+             //         box:item,
+             //         //box: annotation_box[item].index,
+             //         pos: 'w'
+             //     };
+             // }
          }
          else if(annotation_box[item].x2 - tmp_lineOffset < x && x < annotation_box[item].x2 + tmp_lineOffset){
              if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
@@ -522,31 +561,31 @@ function findCurrentArea(x,y){
                      pos: 'se'
                  };
              }
-             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
-                 return {
-                     box:item,
-                     //box: annotation_box[item].index,
-                     pos: 'e'
-                 };
-             }
+             // else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
+             //     return {
+             //         box:item,
+             //         //box: annotation_box[item].index,
+             //         pos: 'e'
+             //     };
+             // }
 
          }
          else if (annotation_box[item].x1 + tmp_lineOffset < x && x < annotation_box[item].x2 - tmp_lineOffset) {
-             if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
-                 return {
-                     box:item,
-                     //box: annotation_box[item].index,
-                     pos: 'n'
-                 };
-             }
-             else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
-                 return {
-                     box:item,
-                     //box: annotation_box[item].index,
-                     pos: 's'
-                 };
-             }
-             else if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
+             // if (annotation_box[item].y1 - tmp_lineOffset < y && y < annotation_box[item].y1 + tmp_lineOffset) {
+             //     return {
+             //         box:item,
+             //         //box: annotation_box[item].index,
+             //         pos: 'n'
+             //     };
+             // }
+             // else if (annotation_box[item].y2 - tmp_lineOffset < y && y < annotation_box[item].y2 + tmp_lineOffset) {
+             //     return {
+             //         box:item,
+             //         //box: annotation_box[item].index,
+             //         pos: 's'
+             //     };
+             // }
+             if (annotation_box[item].y1 + tmp_lineOffset < y && y < annotation_box[item].y2 - tmp_lineOffset) {
                  if (ctrl_key === 1) {
                      return {
                          box:item,
@@ -554,6 +593,12 @@ function findCurrentArea(x,y){
                          pos: 'move'
                      };
                  }
+                 return {
+                     box: -1,
+                     attention:'select',
+                     item: item,
+                     pos: 'o'
+                 };
              }
         }
     }
@@ -592,7 +637,7 @@ document.getElementById('canvas').onmousedown =  function (e){
         y2 = e.offsetY;
         clickedArea = findCurrentArea(e.offsetX, e.offsetY);
         // console.log('------', clickedArea.pos)
-        var checkedToothPosition = $('input[name="tooth"]:checked').val();
+        var checkedToothPosition = $('input[name="tooth"]:checked').val(); //string
         var current_tooth = document.getElementsByName(checkedToothPosition)[0]
         // console.log(clickedArea.pos)
         if(clickedArea.box === -1){
@@ -602,7 +647,24 @@ document.getElementById('canvas').onmousedown =  function (e){
                 return ;
             }
         }
+        if (clickedArea.attention === 'select') {
+            var regionClass = $('#ann input:checked').val();
+            // console.log(typeof annotation_box[clickedArea.item].toothPosition)
+            if(typeof annotation_box[clickedArea.item].toothPosition != "undefined"){
+                // 复原颜色
+                pre_tooth = document.getElementsByName(annotation_box[clickedArea.item].toothPosition.toString())[0]
+                pre_tooth.style.background = '#7F9CCB'
+                // annotation_box[clickedArea.item].toothPosition = checkedToothPosition
+
+            }
+            annotation_box[clickedArea.item].toothPosition = parseInt(checkedToothPosition)  //存为int
+            annotation_box[clickedArea.item].regionClass = regionClass
+            updateToothRadio();
+            current_tooth.style.background ='green'
+            drawonbox();
+        }
     }
+
 }
 
 // 鼠标移动
@@ -688,18 +750,18 @@ document.getElementById('canvas').onmousemove = function (e){
             else if (tmp_cursor.pos === 'sw') {
                 canvas_item.style.cursor = "sw-resize";
             }
-            else if (tmp_cursor.pos === 'w') {
-                canvas_item.style.cursor = "w-resize";
-            }
-            else if (tmp_cursor.pos === 'n') {
-                canvas_item.style.cursor = "n-resize";
-            }
-            else if (tmp_cursor.pos === 's') {
-                canvas_item.style.cursor = "s-resize";
-            }
-            else if (tmp_cursor.pos === 'e') {
-               canvas_item.style.cursor = "e-resize";
-            }
+            // else if (tmp_cursor.pos === 'w') {
+            //     canvas_item.style.cursor = "w-resize";
+            // }
+            // else if (tmp_cursor.pos === 'n') {
+            //     canvas_item.style.cursor = "n-resize";
+            // }
+            // else if (tmp_cursor.pos === 's') {
+            //     canvas_item.style.cursor = "s-resize";
+            // }
+            // else if (tmp_cursor.pos === 'e') {
+            //    canvas_item.style.cursor = "e-resize";
+            // }
             else if (tmp_cursor.pos === 'ne') {
                 canvas_item.style.cursor = "ne-resize";
             }
@@ -713,6 +775,11 @@ document.getElementById('canvas').onmousemove = function (e){
         else {
             canvas_item.style.cursor = "auto";
         }
+    }
+
+    else{
+        drawonReviewbox();
+        drawonbox();
     }
 }
 
@@ -843,11 +910,14 @@ function drawonbox(){
 
         context.font = "15px Normal"
         context.fillStyle = label_color
-        if(item.toothPosition === 32 || item.toothPosition === 41){
-             context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
-        }
-        else {
-            context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size)
+        //console.log(typeof item.toothPosition)
+        if(typeof item.toothPosition != "undefined"){
+            if(item.toothPosition === 32 || item.toothPosition === 41){
+                 context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size + item.height )
+            }
+            else {
+                context.fillText(item.toothPosition + ":" + item.regionClass, item.x1 - border_size, item.y1 - border_size)
+            }
         }
         // context.fillText(item.toothPosition, item.x1 + border_size, item.y2 + border_size )
         // context.fillText(item.regionClass,item.x1 - border_size, item.y1 - border_size)
