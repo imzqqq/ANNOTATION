@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from PIL import Image
-from torchvision.ops import nms
 
 # img_size : w,h
 class DecodeBox(nn.Module):
