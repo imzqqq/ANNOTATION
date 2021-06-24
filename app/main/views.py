@@ -241,7 +241,7 @@ def image_hosting():
             # print('长度是：', len(norm_review_ann))
             page = request.args.get('page', 1, type=int)
             img_annlist = Picture.query.filter(Picture.name.in_(norm_review_ann)).paginate(
-                page, per_page=8, error_out=False)
+                page, per_page=16, error_out=False)
             user_to_pic = Review_Annotation.query.all()
             return render_template('image_hosting.html', imgs=img_annlist, review_flag=True, user_to_pic=user_to_pic)
             # print(img_annlist)
@@ -253,7 +253,7 @@ def image_hosting():
         else:
             page = request.args.get('page', 1, type=int)
             imgs = Picture.query.order_by(Picture.id.desc()).paginate(
-                page, per_page=8, error_out=False)
+                page, per_page=16, error_out=False)
             # img_annlist = Annotation.query.join(Picture).all()
             return render_template('image_hosting.html', imgs=imgs, review_flag=False, user_to_pic=user_to_pic)
     else:
@@ -262,7 +262,7 @@ def image_hosting():
             page = request.args.get('page', 1, type=int)
             print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).join(Review_Annotation).paginate(
-                page, per_page=8, error_out=False)
+                page, per_page=16, error_out=False)
             user_to_pic = Review_Annotation.query.all()
             return render_template('image_hosting.html', imgs=imgs, review_flag=True, user_to_pic=user_to_pic)
         else:
@@ -270,7 +270,7 @@ def image_hosting():
             page = request.args.get('page', 1, type=int)
             print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).paginate(
-                page, per_page=8, error_out=False)
+                page, per_page=16, error_out=False)
             user_to_pic = Annotation.query.all()
             return render_template('image_hosting.html', imgs=imgs, review_flag=False, user_to_pic=user_to_pic)
 
@@ -734,9 +734,12 @@ def get_model_predict(image_path, flile_name):
 def upload_local():
     upload_list = os.listdir('upload_local')
     print('-----', len(upload_list))
+    upload_list.sort()
     for i in range(len(upload_list)):
         """图片上传处理"""
         cur_filename = upload_list[i]
+        if(cur_filename == '.ipynb_checkpoints'):
+            continue
         rename_pic = Picture.query.filter_by(name=cur_filename.replace(" ", "").strip() if len(cur_filename) < 32 else cur_filename).first()
         if rename_pic is not None:
             flash(str(cur_filename) + '重复上传', category='repeat')
@@ -783,7 +786,7 @@ def upload_local():
                     db.session.rollback()
                     flash(str(cur_filename) + '上传失败', category='fail')
 
-        get_model_predict(cur_filename)
+            get_model_predict(filename, cur_filename)
 
     res = {
         'code': 1,
@@ -802,17 +805,17 @@ def upload_local():
 # 更新年龄
 @main.route('/test/age')
 def age_recompute():
-    all_ann = Annotation.query.filter(Annotation.User != 'admin').all()
-    # all_ann = Final_Review_Annotation.query.all()
+    #all_ann = Annotation.query.filter(Annotation.User != 'admin').all()
+    all_ann = Review_Annotation.query.all()
     # print(len(all_ann))
     for now_ann in all_ann:
         shoot_date = now_ann.ShootDate
         imagename = now_ann.ImageName
-        ann_user = now_ann.User
-        # ann_user = now_ann.Reviewer
+        # ann_user = now_ann.User
+        ann_user = now_ann.Reviewer
         tooth_age = compute_tooth_age(imagename, shoot_date)
-        cur_work_item = Annotation.query.filter_by(ImageName=imagename, User=ann_user).first()
-        # cur_work_item = Final_Review_Annotation.query.filter_by(ImageName=imagename, Reviewer=ann_user).first()
+        # cur_work_item = Annotation.query.filter_by(ImageName=imagename, User=ann_user).first()
+        cur_work_item = Review_Annotation.query.filter_by(ImageName=imagename, Reviewer=ann_user).first()
         cur_work_item.Tooth_Age = tooth_age
         db.session.commit()
         # print('更新')

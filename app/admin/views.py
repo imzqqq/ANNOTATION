@@ -380,7 +380,7 @@ def annotation_data_query_user_to_image():
 @login_required
 def review():
     # 标注数据
-    ann_data_list = Annotation.query.with_entities(Annotation.ImageName).distinct().all()
+    ann_data_list = Annotation.query.filter(Annotation.User != 'admin').with_entities(Annotation.ImageName).distinct().all()
     ann_user_list = Annotation.query.with_entities(Annotation.ImageName, Annotation.User).distinct().all()
     image_to_user = dict()
     for ann_user in ann_user_list:
