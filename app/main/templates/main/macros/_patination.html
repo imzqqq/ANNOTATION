@@ -25,8 +25,18 @@
             <span>&raquo;</span>
             </a>
         </li>
-            <a class = "btn btn-primary" href="{% if pagination.has_next %}{{ url_for(endpoint, page=pagination.page + 5, **kwargs) }}{% else %}#{% endif %}">后5页</a>
-            <a class = "btn btn-success" href="{% if pagination.has_next %}{{ url_for(endpoint, page=pagination.page + 10, **kwargs) }}{% else %}#{% endif %}">后10页</a>
+          <input type="text" id="page_l" name="lname">
+          <input type="submit" value="go!" onclick="jump()" >
+
+           <script type="text/javascript">
+               function jump(){
+                   let search_page =  $("#page_l").val();
+                   window.location.href=`/imagehosting?page=${search_page}`;
+                   {#window.location.href="{% if pagination.has_next %}{{ url_for(endpoint, page=sp, **kwargs) }}{% else %}#{% endif %}";#}
+               }
+           </script>
+
+
         </li>
     </ul>
     <!-- end pagination -->
