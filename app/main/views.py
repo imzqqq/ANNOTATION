@@ -240,7 +240,7 @@ def image_hosting():
                 norm_review_ann.append(ann_image[0])
             # print('长度是：', len(norm_review_ann))
             page = request.args.get('page', 1, type=int)
-            img_annlist = Picture.query.filter(Picture.name.in_(norm_review_ann)).paginate(
+            img_annlist = Picture.query.filter(Picture.name.in_(norm_review_ann)).order_by(Picture.id.desc()).paginate(
                 page, per_page=8, error_out=False)
             return render_template('image_hosting.html', imgs=img_annlist, review_flag=True)
             # user_to_pic = Review_Annotation.query.all()
