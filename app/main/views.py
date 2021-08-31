@@ -629,7 +629,7 @@ def query_review():
     tooth_position_class_dict = dict()
     review_info = []
     for review_data in review_list:
-        if review_data.Reviewer == 'daijiaqi1':
+        if review_data.Reviewer == 'daijiaqi':
             review_info = review_data.Tooth_Annotation_Info
         tooth_list = json.loads(review_data.Tooth_Annotation_Info)
         new_tooth_list = sorted(tooth_list, key=lambda e: e.__getitem__('toothPosition'))
