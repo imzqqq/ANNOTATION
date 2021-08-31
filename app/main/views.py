@@ -260,7 +260,7 @@ def image_hosting():
         if (current_user.role == 'secondary_annotator' or current_user.role == 'reviewer'):
             # 搜索关键词
             page = request.args.get('page', 1, type=int)
-            print("\n------------imagename_gb, ", imagename_gb)
+            # print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).join(Review_Annotation).paginate(
                 page, per_page=8, error_out=False)
             user_to_pic = Review_Annotation.query.all()
@@ -268,7 +268,7 @@ def image_hosting():
         else:
             # 搜索关键词
             page = request.args.get('page', 1, type=int)
-            print("\n------------imagename_gb, ", imagename_gb)
+            # print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).paginate(
                 page, per_page=8, error_out=False)
             user_to_pic = Annotation.query.all()
@@ -295,7 +295,7 @@ def image_hosting_query():
 def image_hosting_query_callback(imagename_gb):
     # 搜索关键词
     page = request.args.get('page', 1, type=int)
-    print("\n------------imagename_gb, " , imagename_gb)
+    # print("\n------------imagename_gb, ", imagename_gb)
     # if(imagename_gb=="" or imagename_gb==None):
     #     imagename_gb = request.args.get('imagename')
     imgs = Picture.query.filter(Picture.name.like('%'+ imagename_gb +'%')).paginate(
@@ -476,6 +476,10 @@ def save_annotation():
     annotation_date = request.form['ann_date']
 
     # print(ann_info)
+    ann_dict_info = json.loads(ann_info)
+    # print('-----info', ann_dict_info)
+    print(type(ann_dict_info))
+    print('-----len', len(ann_dict_info))
     # print('------', shoot_date)
 
     tooth_age = compute_tooth_age(pic_name, shoot_date)
@@ -493,11 +497,27 @@ def save_annotation():
         ann_query.AnnotationDate = annotation_date
         ann_query.Tooth_Age = tooth_age
         db.session.commit()
+    # 如果含有所有数据，就保存到待审核数据中去
+    if len(ann_dict_info) == 32:
+        review_query = Review_Annotation.query.filter_by(ImageName=pic_name, Reviewer=user_name).first()
+        if review_query is None:
+            new_review_item = Review_Annotation(ImageName=pic_name, Reviewer=user_name, ShootDate=shoot_date,
+                                                Tooth_Annotation_Info=ann_info, Tooth_Age=tooth_age,
+                                                flag_review=False)
+            db.session.add(new_review_item)
+            db.session.commit()
+        else:
+            review_query.Tooth_Annotation_Info = ann_info
+            review_query.Reviewer = user_name
+            review_query.ShootDate = shoot_date
+            review_query.Tooth_Age = tooth_age
+            review_query.flag_review = False
+            db.session.commit()
     result = dict()
     result['message'] = '保存成功！'
     return jsonify(result)
 
-# 标注保存接口
+# 原来的审核标注保存接口（abandoned）
 @main.route('/api/annotation/save/review', methods=['POST'])
 def save_review_annotation():
     # print('正在保存')
@@ -588,6 +608,75 @@ def load_model_data():
                 'annotation_box': annotation_box,
             }
         return jsonify(result)
+
+# 判断用户角色
+@main.route('/api/annotation/get_role', methods=['POST'])
+def get_role_by_user():
+    user_name = request.form['user']
+    user_data = User.query.filter_by(username=user_name).first()
+    role = user_data.role
+    print('000000', role)
+    print(type(role))
+    return jsonify(role)
+
+# 查询审核数据
+@main.route('/api/annotation/query_review', methods=['POST'])
+def query_review():
+    pic_name = request.form['pic_name']
+    review_list = Review_Annotation.query.filter_by(ImageName=pic_name).all()
+    tooth_position_class_dict = dict()
+    review_info = []
+    for review_data in review_list:
+        if review_data.Reviewer == 'daijiaqi1':
+            review_info = review_data.Tooth_Annotation_Info
+        tooth_list = json.loads(review_data.Tooth_Annotation_Info)
+        new_tooth_list = sorted(tooth_list, key=lambda e: e.__getitem__('toothPosition'))
+        # print('排序', new_tooth_list)
+        for tooth_info in new_tooth_list:
+            if 18 < tooth_info['toothPosition'] < 41:
+                all_list = []
+                temp_dict = dict()
+                temp_dict['regionClass'] = tooth_info['regionClass']
+                temp_dict['annotation'] = review_data.Reviewer
+                # print(tooth_info['toothPosition'])
+                # print(tooth_position_class_dict.keys())
+                if tooth_info['toothPosition'] not in tooth_position_class_dict.keys():
+                    all_list.append(temp_dict)
+                    tooth_position_class_dict[tooth_info['toothPosition']] = all_list
+                else:
+                    print('-----test')
+                    all_list = tooth_position_class_dict[tooth_info['toothPosition']]
+                    all_list.append(temp_dict)
+                    tooth_position_class_dict[tooth_info['toothPosition']] = all_list
+    print(tooth_position_class_dict)
+    result_dict = dict()
+    result_dict['tooth_info'] = review_info
+    result_dict['region_class'] = tooth_position_class_dict
+    return jsonify(result_dict)
+
+
+@main.route('/api/annotation/reload/review', methods=['POST'])
+def reload_review_annotation():
+    user_name = request.form['user']
+    pic_name = request.form['pic_name']
+
+    review_ann_data = Final_Review_Annotation.query.filter_by(ImageName=pic_name, Reviewer=user_name).first()
+    if review_ann_data is None:
+        result = {
+            'code': 0,
+            'msg': u'未查询到标注数据!'
+        }
+    else:
+        annotation_box = review_ann_data.Tooth_Annotation_Info
+        shoot_date = review_ann_data.ShootDate
+        # print('---', shoot_date)
+        result = {
+            'code': 1,
+            'msg': u'载入成功！',
+            'annotation_box': annotation_box,
+            'shoot_date': shoot_date,
+        }
+    return jsonify(result)
 
 # 标注载入接口
 @main.route('/api/annotation/reload', methods=['POST'])

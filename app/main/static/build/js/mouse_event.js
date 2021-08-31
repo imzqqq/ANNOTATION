@@ -59,11 +59,173 @@ function updateImageDisplay(obj){
     mousedown = 0;
     initPage(obj);
     get_labels();
-    // console.log('----------',image_naturalWidth,image_naturalHeight)
-    reloadAnnotationBox();
-    loadModelAnnotatinBox();
-     // initPage(obj);
-    reviewer_flag = false
+    user = document.getElementsByClassName("avatar");
+    user_name =  user[0].alt;
+    // 获取用户角色，是不是审核员？
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/api/annotation/get_role?" + new Date(),
+        data: {'user': user_name},
+        beforeSend: function () {
+        },
+        success: function (role) {
+            if(role == 'primary_annotator'){
+                reviewer_flag = false
+                reloadAnnotationBox();
+                loadModelAnnotatinBox();
+                mirror_class();
+            }
+            else{
+                reviewer_flag = true
+                reloadReviewAnnotationBox();
+                getReviewAnnotationBox();
+                mirror_class();
+            }
+        }
+    });
+}
+function reloadReviewAnnotationBox(){
+    annotation_box = [];    //清空
+    var parent_btn = document.querySelector('.reload')
+    while (parent_btn.firstChild) {
+        parent_btn.removeChild(parent_btn.firstChild);
+    }
+    reload_btn = document.createElement('button')
+    reload_btn.id = "thumbnail-reload-btn"
+    reload_btn.type = "button"
+    reload_btn.className="btn-success"
+    reload_btn.innerText = "载入已审核数据"
+    parent_btn.appendChild(reload_btn)
+
+    $('#thumbnail-reload-btn').click(function () {
+        picNameStr = $('#cur_id').html();
+        user = document.getElementsByClassName("avatar");
+        user_name = user[0].alt;
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/api/annotation/reload/review?" + new Date(),
+            data: {'user': user_name, 'pic_name': picNameStr},
+            beforeSend: function () {
+            },
+            success: function (result) {
+                layer.msg(result.msg);
+                var getDataArray = result.annotation_box;
+                annotation_box = JSON.parse(getDataArray)
+                context.clearRect(0,0,canvas_item.width,canvas_item.height)
+                drawpicture();
+                computereloadbox();
+                drawonbox();
+                reloadtoothstatus();
+            }
+        })
+    })
+}
+function getReviewAnnotationBox(){
+    annotation_box = [];    //清空
+    var parent_btn = document.querySelector('.review')
+    while (parent_btn.firstChild) {
+        parent_btn.removeChild(parent_btn.firstChild);
+     }
+    get_btn = document.createElement('button')
+    get_btn.id = "thumbnail-review-btn"
+    get_btn.type = "button"
+    get_btn.className="btn-info"
+    get_btn.innerText = "获取待审核标注数据"
+    parent_btn.appendChild(get_btn)
+
+    $('#thumbnail-review-btn').click(function (){
+        picNameStr = $('#cur_id').html();
+        user = document.getElementsByClassName("avatar");
+        user_name =  user[0].alt;
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/api/annotation/query_review?" + new Date(),
+            data: {'pic_name' : picNameStr},
+            beforeSend: function() {},
+            success: function(result) {
+                annotation_box = JSON.parse(result.tooth_info)
+                lable_class = result.region_class
+                context.clearRect(0,0,canvas_item.width,canvas_item.height)
+                drawpicture();
+                computereloadbox();
+                drawonbox();
+                reloadtoothstatus();
+                // 表格
+                tbody = document.querySelector('.region_class')
+                while(tbody.firstChild){
+                    tbody.removeChild(tbody.firstChild)
+                }
+                add_tabel_element(lable_class);
+            },
+            error: function() {}
+        });
+    });
+}
+
+function add_tabel_element(label_class){
+    tbody = document.querySelector('.region_class')
+    tr_item = document.createElement('tr')
+    th_item = document.createElement('th')
+    $(th_item).html(' ')
+    tr_item.appendChild(th_item)
+    //插入牙位信息 21-28
+    for(let i=21; i<=28;i++){
+        th_item = document.createElement('th')
+        $(th_item).html(i)
+        th_item.style.width = '70px'
+        tr_item.appendChild(th_item)
+    }
+    // 31-38
+    for(let i=31; i<=38;i++){
+        th_item = document.createElement('th')
+        $(th_item).html(i)
+        th_item.style.width = '70px'
+        tr_item.appendChild(th_item)
+    }
+    tbody.appendChild(tr_item)
+    // 标注者长度
+    user_len = lable_class[21].length
+    let table_obj = [[],[]];
+    // 防止table_obj出现undefined
+    for(let user=0; user<lable_class[21].length; user++){
+        table_obj[user] = []
+    }
+    //按行存，user:abcdefg(16个)
+    for (toothposition in label_class) {
+        var region_list = label_class[toothposition];
+        for(let i=0; i<region_list.length; i++){
+            table_obj[i].push(region_list[i].regionClass)
+        }
+    }
+    var tooth_color = []
+    //按列对比
+    for(let i=0; i<table_obj[0].length; i++){
+        var equal_obj = [];
+        for(let j=0; j<table_obj.length; j++){
+            equal_obj.push(table_obj[j][i])
+        }
+        // 判断数组中的所有元素是否全部相同
+        const elementsAreEqual = array => array.every(el => el === array[0])
+        tooth_color.push(elementsAreEqual(equal_obj))
+    }
+    for(let user=0; user<user_len; user++){
+        tr_item = document.createElement('tr')
+        th_item = document.createElement('th')
+        $(th_item).html(lable_class[21][user].annotation)
+        tr_item.appendChild(th_item)
+        for(let i=0; i<table_obj[0].length; i++){
+            th_item = document.createElement('th')
+            if(!tooth_color[i]){
+                th_item.style.color='red'
+            }
+            tr_item.appendChild(th_item)
+            $(th_item).html(table_obj[user][i])
+        }
+        tbody.appendChild(tr_item)
+    }
 }
 
 function loadModelAnnotatinBox(){
@@ -93,14 +255,35 @@ function loadModelAnnotatinBox(){
             success: function(result) {
                 layer.msg(result.msg);
                 if(result.code === 1) {
+                    annotation_box = null
+                    context.clearRect(0,0,canvas_item.width,canvas_item.height)
+                    drawpicture();
                     var getDataArray = result.annotation_box;
                     annotation_box = JSON.parse(getDataArray);
-                     computereloadbox();
-                     drawonbox();
+                    computereloadbox();
+                    drawonbox();
+                    reloadtoothstatus();
                 }
             },
          });
     });
+}
+// 以part_annotation_box为标准合并all_annotation_box的
+function merge_annotation_box(all_annotation_box, part_annotation_box){
+    let cur_tooth;
+    for (let i = 0; i < all_annotation_box.length; ++i) {
+        cur_tooth = all_annotation_box[i].toothPosition
+        let j;
+        for (j = 0; j < part_annotation_box.length; j++) {
+            if (cur_tooth === part_annotation_box[j].toothPosition) {
+                break;
+            }
+        }
+        if(j === part_annotation_box.length){
+            part_annotation_box[part_annotation_box.length] = all_annotation_box[i]
+        }
+    }
+    return part_annotation_box
 }
 
 function reloadAnnotationBox(){
@@ -130,23 +313,26 @@ function reloadAnnotationBox(){
                 layer.msg(result.msg);
                 if(result.code === 1){
                      // 恢复拍片日期
-                    //if(result.role != 'secondary_annotator'){
-
-                        $('#shootingDate').val(result.shoot_date);
-                        var getDataArray = result.annotation_box;
-                        if(result.annotation_box != null){
-                            annotation_box = JSON.parse(getDataArray)
-                            //console.log(annotation_box)
-                            // console.log(annotation_box)
-                            computereloadbox();
-                            reloadtoothstatus();
-                            //allNotIn++;
-                            if(result.role != 'reviewer'){
-                                drawonbox();
-                            }
-
+                    $('#shootingDate').val(result.shoot_date);
+                    var getDataArray = result.annotation_box;
+                    if(result.annotation_box != null){
+                        new_annotation_box = JSON.parse(getDataArray)
+                        if (annotation_box.length !== 0){
+                            // 已经有模型检测结果了，载入就合并
+                            annotation_box = merge_annotation_box(annotation_box, new_annotation_box)
                         }
-                    //}
+                        else {
+                            annotation_box = new_annotation_box
+                        }
+                        computereloadbox();
+                        reloadtoothstatus();
+                        if(result.role != 'reviewer'){
+                            context.clearRect(0,0,canvas_item.width,canvas_item.height)
+                            drawpicture();
+                            drawonbox();
+                        }
+                    }
+                    // 已经不会再执行到了
                     if(result.review_flag){
                         $('#shootingDate').val(result.shoot_date);
                         var getDataArray = result.review_box
@@ -184,8 +370,6 @@ function reloadAnnotationBox(){
                         }
                     }
                 }
-                // console.log(result.tooth_list)
-                //draw(result.coordinate_list, result.tooth_list, result.class_list, obj.img_resolution_w , obj.img_resolution_h);
             },
             error: function() {}
         });
@@ -206,20 +390,50 @@ function mirror_class(){
     mirror_btn.innerText = "镜像分类"
     parent_btn.appendChild(mirror_btn)
 
+    // $('#thumbnail-mirror-btn').click( function (){
+    //     review_box.forEach(item=>{
+    //         //console.log(typeof item.toothPosition)
+    //             tooth_to_class[item.toothPosition] = item.regionClass
+    //         }
+    //     );
+    //     //console.log(tooth_to_class)
+    //
+    //     annotation_box.forEach(item=>{
+    //         if(parseInt(item.toothPosition) < 19){
+    //             target_tooth_position = parseInt(item.toothPosition) + parseInt('10')
+    //         }
+    //         else{
+    //             target_tooth_position = parseInt(item.toothPosition) - parseInt('10')
+    //         }
+    //         // console.log(target_tooth_position)
+    //         // console.log(tooth_to_class[target_tooth_position])
+    //         // 若审核的数据中无标签，默认仍为NAN
+    //         if(typeof tooth_to_class[target_tooth_position] != 'undefined')
+    //             item.regionClass = tooth_to_class[target_tooth_position]
+    //         else
+    //             item.regionClass = 'M'
+    //         }
+    //
+    //     );
+    //     drawpicture();
+    //     drawonReviewbox();
+    //     drawonbox();
+    //
+    // });
     $('#thumbnail-mirror-btn').click( function (){
-        review_box.forEach(item=>{
-            //console.log(typeof item.toothPosition)
+        annotation_box.forEach(item=>{
                 tooth_to_class[item.toothPosition] = item.regionClass
             }
         );
-        //console.log(tooth_to_class)
-
         annotation_box.forEach(item=>{
             if(parseInt(item.toothPosition) < 19){
                 target_tooth_position = parseInt(item.toothPosition) + parseInt('10')
             }
-            else{
+            else if(parseInt(item.toothPosition) > 39){
                 target_tooth_position = parseInt(item.toothPosition) - parseInt('10')
+            }
+            else{
+                target_tooth_position = item.toothPosition
             }
             // console.log(target_tooth_position)
             // console.log(tooth_to_class[target_tooth_position])
@@ -229,16 +443,13 @@ function mirror_class(){
             else
                 item.regionClass = 'M'
             }
-
         );
         drawpicture();
         drawonReviewbox();
         drawonbox();
-
     });
-
-
 }
+
 function drawonReviewbox(){
     review_box.forEach(item=>{
         context.beginPath();
@@ -315,33 +526,45 @@ $('#btn_save').click(function() {
         shootdate = document.querySelector('input[type="date"]').value;
         user = document.getElementsByClassName("avatar");
         user_name =  user[0].alt;
-        if(JSON.stringify(review_box) == '[]')
-        {
-            if(reviewer_flag){
-                //console.log(annotation_box)
-                saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate)
-            }
-            else{
-                var time = new Date();
-                day = ("0" + time.getDate()).slice(-2);
-                month = ("0" + (time.getMonth() + 1)).slice(-2);
-                var today = time.getFullYear() + "-" + (month) + "-" + (day);
-                //console.log(annotation_box,user_name,picNameStr,shootdate,today)
-                saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
-            }
+        if(reviewer_flag){
+            //console.log(annotation_box)
+            saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate)
         }
         else{
+            var time = new Date();
+            day = ("0" + time.getDate()).slice(-2);
+            month = ("0" + (time.getMonth() + 1)).slice(-2);
+            var today = time.getFullYear() + "-" + (month) + "-" + (day);
             //console.log(annotation_box,user_name,picNameStr,shootdate,today)
-            //saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
-            //review_index = review_box.length
-            annotation_box.forEach(item=>{
-                item.mark = 'mirror'
-                //item.index = review_index
-                //review_index++;
-                //review_box.push(item)
-            });
-            saveReviewInfo(annotation_box,picNameStr,user_name,shootdate);
+            saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
         }
+        // if(JSON.stringify(review_box) == '[]')
+        // {
+        //     if(reviewer_flag){
+        //         //console.log(annotation_box)
+        //         saveFinalReviewInfo(annotation_box,picNameStr,user_name,shootdate)
+        //     }
+        //     else{
+        //         var time = new Date();
+        //         day = ("0" + time.getDate()).slice(-2);
+        //         month = ("0" + (time.getMonth() + 1)).slice(-2);
+        //         var today = time.getFullYear() + "-" + (month) + "-" + (day);
+        //         //console.log(annotation_box,user_name,picNameStr,shootdate,today)
+        //         saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
+        //     }
+        // }
+        // else{
+        //     //console.log(annotation_box,user_name,picNameStr,shootdate,today)
+        //     //saveRegionInfo(annotation_box,user_name,picNameStr,shootdate,today);
+        //     //review_index = review_box.length
+        //     annotation_box.forEach(item=>{
+        //         item.mark = 'mirror'
+        //         //item.index = review_index
+        //         //review_index++;
+        //         //review_box.push(item)
+        //     });
+        //     saveReviewInfo(annotation_box,picNameStr,user_name,shootdate);
+        // }
     }
 });
 
