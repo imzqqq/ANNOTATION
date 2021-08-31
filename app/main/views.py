@@ -228,7 +228,7 @@ def image_hosting():
     """
     # print('------request')
     global imagename_gb
-    user_to_pic = Annotation.query.all()
+    user_to_pic = db.session.query(Annotation.ImageName, Annotation.User, Annotation.AnnotationDate).all()
     if (imagename_gb == "" or imagename_gb is None):
         if (current_user.role == 'secondary_annotator' or current_user.role == 'reviewer'):
             page = request.args.get('page', 1, type=int)
@@ -242,8 +242,9 @@ def image_hosting():
             page = request.args.get('page', 1, type=int)
             img_annlist = Picture.query.filter(Picture.name.in_(norm_review_ann)).paginate(
                 page, per_page=8, error_out=False)
-            user_to_pic = Review_Annotation.query.all()
-            return render_template('image_hosting.html', imgs=img_annlist, review_flag=True, user_to_pic=user_to_pic)
+            return render_template('image_hosting.html', imgs=img_annlist, review_flag=True)
+            # user_to_pic = Review_Annotation.query.all()
+            # return render_template('image_hosting.html', imgs=img_annlist, review_flag=True, user_to_pic=user_to_pic)
             # print(img_annlist)
             # imgs = Picture.query.order_by(Picture.id.desc()).paginate(
             #     page, per_page=8, error_out=False)
@@ -263,15 +264,16 @@ def image_hosting():
             # print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).join(Review_Annotation).paginate(
                 page, per_page=8, error_out=False)
-            user_to_pic = Review_Annotation.query.all()
-            return render_template('image_hosting.html', imgs=imgs, review_flag=True, user_to_pic=user_to_pic)
+            # user_to_pic = Review_Annotation.query.all()
+            # return render_template('image_hosting.html', imgs=imgs, review_flag=True, user_to_pic=user_to_pic)
+            return render_template('image_hosting.html', imgs=imgs, review_flag=True)
         else:
             # 搜索关键词
             page = request.args.get('page', 1, type=int)
             # print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).paginate(
                 page, per_page=8, error_out=False)
-            user_to_pic = Annotation.query.all()
+            user_to_pic = db.session.query(Annotation.ImageName, Annotation.User, Annotation.AnnotationDate).all()
             return render_template('image_hosting.html', imgs=imgs, review_flag=False, user_to_pic=user_to_pic)
 
 
