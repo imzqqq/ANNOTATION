@@ -499,8 +499,8 @@ def save_annotation():
         ann_query.AnnotationDate = annotation_date
         ann_query.Tooth_Age = tooth_age
         db.session.commit()
-    # 如果含有所有数据，就保存到待审核数据中去
-    if len(ann_dict_info) == 32:
+    # 如果含有所有数据，就保存到待审核数据中去 （10.9更改，如果不是空就在review表里保存一份）
+    if len(ann_dict_info) != 0:
         review_query = Review_Annotation.query.filter_by(ImageName=pic_name, Reviewer=user_name).first()
         if review_query is None:
             new_review_item = Review_Annotation(ImageName=pic_name, Reviewer=user_name, ShootDate=shoot_date,
