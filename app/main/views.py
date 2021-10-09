@@ -241,7 +241,7 @@ def image_hosting():
             # print('长度是：', len(norm_review_ann))
             page = request.args.get('page', 1, type=int)
             img_annlist = Picture.query.filter(Picture.name.in_(norm_review_ann)).order_by(Picture.id.desc()).paginate(
-                page, per_page=8, error_out=False)
+                page, per_page=12, error_out=False)
             return render_template('image_hosting.html', imgs=img_annlist, review_flag=True)
             # user_to_pic = Review_Annotation.query.all()
             # return render_template('image_hosting.html', imgs=img_annlist, review_flag=True, user_to_pic=user_to_pic)
@@ -263,7 +263,7 @@ def image_hosting():
             page = request.args.get('page', 1, type=int)
             # print("\n------------imagename_gb, ", imagename_gb)
             imgs = Picture.query.filter(Picture.name.like('%' + imagename_gb + '%')).join(Review_Annotation).paginate(
-                page, per_page=8, error_out=False)
+                page, per_page=12, error_out=False)
             # user_to_pic = Review_Annotation.query.all()
             # return render_template('image_hosting.html', imgs=imgs, review_flag=True, user_to_pic=user_to_pic)
             return render_template('image_hosting.html', imgs=imgs, review_flag=True)
